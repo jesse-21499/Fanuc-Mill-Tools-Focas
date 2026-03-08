@@ -3,6 +3,7 @@
 #include "FanucMillTools.h"
 #include <msclr/marshal.h>
 #include "Utils.h"
+
 //#define MAX_AXIS 32
 
 namespace FanucMillTools {
@@ -13,6 +14,7 @@ namespace FanucMillTools {
   using namespace System::Data;
   using namespace System::Data::SqlClient;
   using namespace System::Drawing;
+  using namespace System::Collections::Generic;
   
   using namespace std;
   using namespace Utils;
@@ -226,7 +228,6 @@ namespace FanucMillTools {
         this->menuStrip1->PerformLayout();
         this->ResumeLayout(false);
         this->PerformLayout();
-
     }
 #pragma endregion
 
@@ -234,51 +235,34 @@ namespace FanucMillTools {
     // you can call them by clicking a menu item.
 
   private: System::Void readParameterToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
-  {   
-      for each(Control^ ctrl in Controls)
-      {
-          //if (((Control^)sender)->Tag == "Dynamic") Controls->Remove(ctrl);
-          //if (ctrl->Tag=="Dynamic") Controls->Remove(ctrl); //Doesn't work
-          
+  {
+      List <Control^> DynamicControls;
+      for each(Control^ ctrl in this->Controls)
+      {if (ctrl->Tag == "Dynamic") DynamicControls.Add(ctrl);
       }
-      Label^ InfoLabel_lbl = gcnew Label();
-      TextBox^ FromParam_tb = gcnew TextBox();
-      TextBox^ ToParam_tb = gcnew TextBox();
-      Button^ ReadParams_btn = gcnew Button();
-      Label^ FromParam_lbl = gcnew Label();
-      Label^ ToParam_lbl = gcnew Label();
-      Label^ Param_no_lbl = gcnew Label();
-      
-      InfoLabel_lbl->Name = "InfoLabel_lbl"; InfoLabel_lbl->Tag = "Dynamic"; InfoLabel_lbl->SetBounds(1200, 60, 250, 20); InfoLabel_lbl->Visible = false;
-      FromParam_lbl->Name = "FromParam_lbl"; FromParam_lbl->Text = "FROM PARAM:"; FromParam_lbl->Tag = "Dynamic"; FromParam_lbl->SetBounds(50, 100, 150, 20);
-      ToParam_lbl->Name = "ToParam_lbl"; ToParam_lbl->Text = "TO PARAM:"; ToParam_lbl->Tag = "Dynamic"; ToParam_lbl->SetBounds(50, 140, 150, 20);
-      Param_no_lbl->Name = "Param_no_lbl";  Param_no_lbl->Tag = "Dynamic"; Param_no_lbl->SetBounds(450, 120, 150, 20);
-      ReadParams_btn->Name = "ReadParams_btn"; ReadParams_btn->Text = "GET PARAMETERS"; ReadParams_btn->Tag = "Dynamic"; ReadParams_btn->SetBounds(250, 120, 125, 20);
+      for each (Control ^ ctrl in DynamicControls)
+      {Controls->Remove(ctrl);
+      }
+      Label^ InfoLabel_lbl = gcnew Label(); InfoLabel_lbl->Name = "InfoLabel_lbl"; InfoLabel_lbl->Tag = "Dynamic"; InfoLabel_lbl->SetBounds(1200, 60, 250, 20); InfoLabel_lbl->Visible = false;
+      TextBox^ FromParam_tb = gcnew TextBox(); FromParam_tb->Name = "FromParam_tb"; FromParam_tb->Tag = "Dynamic"; FromParam_tb->SetBounds(150, 100, 50, 20);
+      TextBox^ ToParam_tb = gcnew TextBox(); ToParam_tb->Name = "ToParam_tb"; ToParam_tb->Tag = "Dynamic"; ToParam_tb->SetBounds(150, 140, 50, 20);
+      Button^ ReadParams_btn = gcnew Button(); ReadParams_btn->Name = "ReadParams_btn"; ReadParams_btn->Text = "GET PARAMETERS"; ReadParams_btn->Tag = "Dynamic"; ReadParams_btn->SetBounds(250, 120, 125, 20);
+      Label^ FromParam_lbl = gcnew Label(); FromParam_lbl->Name = "FromParam_lbl"; FromParam_lbl->Text = "FROM PARAM:"; FromParam_lbl->Tag = "Dynamic"; FromParam_lbl->SetBounds(50, 100, 150, 20);
+      Label^ ToParam_lbl = gcnew Label(); ToParam_lbl->Name = "ToParam_lbl"; ToParam_lbl->Text = "TO PARAM:"; ToParam_lbl->Tag = "Dynamic"; ToParam_lbl->SetBounds(50, 140, 150, 20);
+      Label^ Param_no_lbl = gcnew Label(); Param_no_lbl->Name = "Param_no_lbl";  Param_no_lbl->Tag = "Dynamic"; Param_no_lbl->SetBounds(450, 120, 150, 20);
       
       /////////////////////////////////////////
-      Label^ Param_data_lbl = gcnew Label();
-      Label^ Param_Xdata_lbl = gcnew Label();
-      Label^ Param_Ydata_lbl = gcnew Label();
-      Label^ Param_Zdata_lbl = gcnew Label();
-      TextBox^ Param_data_tb = gcnew TextBox();
-      TextBox^ Param_Xdata_tb = gcnew TextBox();
-      TextBox^ Param_Ydata_tb = gcnew TextBox();
-      TextBox^ Param_Zdata_tb = gcnew TextBox();
+      Label^ Param_data_lbl = gcnew Label(); Param_data_lbl->Name = "Param_data_lbl"; Param_data_lbl->Text = "PARAMETER VALUE:"; Param_data_lbl->Tag = "Dynamic"; Param_data_lbl->SetBounds(650, 100, 150, 20);
+      Label^ Param_Xdata_lbl = gcnew Label(); Param_Xdata_lbl->Name = "Param_Xdata_lbl"; Param_Xdata_lbl->Text = "PARAMETER VALUE(X):"; Param_Xdata_lbl->Tag = "Dynamic"; Param_Xdata_lbl->SetBounds(650, 130, 150, 20);
+      Label^ Param_Ydata_lbl = gcnew Label(); Param_Ydata_lbl->Name = "Param_Ydata_lbl"; Param_Ydata_lbl->Text = "PARAMETER VALUE(Y):"; Param_Ydata_lbl->Tag = "Dynamic"; Param_Ydata_lbl->SetBounds(650, 160, 150, 20);
+      Label^ Param_Zdata_lbl = gcnew Label(); Param_Zdata_lbl->Name = "Param_Zdata_lbl"; Param_Zdata_lbl->Text = "PARAMETER VALUE(Z):"; Param_Zdata_lbl->Tag = "Dynamic"; Param_Zdata_lbl->SetBounds(650, 190, 150, 20);
+      TextBox^ Param_data_tb = gcnew TextBox(); Param_data_tb->Name = "Param_data_tb"; Param_data_tb->Enabled = false; Param_data_tb->Tag = "Dynamic"; Param_data_tb->SetBounds(850, 100, 75, 20);
+      TextBox^ Param_Xdata_tb = gcnew TextBox(); Param_Xdata_tb->Name = "Param_Xdata_tb"; Param_Xdata_tb->Enabled = false; Param_Xdata_tb->Tag = "Dynamic"; Param_Xdata_tb->SetBounds(850, 130, 75, 20);
+      TextBox^ Param_Ydata_tb = gcnew TextBox(); Param_Ydata_tb->Name = "Param_Ydata_tb"; Param_Ydata_tb->Enabled = false; Param_Ydata_tb->Tag = "Dynamic"; Param_Ydata_tb->SetBounds(850, 160, 75, 20);
+      TextBox^ Param_Zdata_tb = gcnew TextBox(); Param_Zdata_tb->Name = "Param_Zdata_tb"; Param_Zdata_tb->Enabled = false; Param_Zdata_tb->Tag = "Dynamic"; Param_Zdata_tb->SetBounds(850, 190, 75, 20);
 
-      Param_data_lbl->Name = "Param_data_lbl"; Param_data_lbl->Text = "PARAMETER VALUE:"; Param_data_lbl->Tag = "Dynamic"; Param_data_lbl->SetBounds(650, 100, 150, 20);
-      Param_Xdata_lbl->Name = "Param_Xdata_lbl"; Param_Xdata_lbl->Text = "PARAMETER VALUE(X):"; Param_Xdata_lbl->Tag = "Dynamic"; Param_Xdata_lbl->SetBounds(650, 130, 150, 20);
-      Param_Ydata_lbl->Name = "Param_Ydata_lbl"; Param_Ydata_lbl->Text = "PARAMETER VALUE(Y):"; Param_Ydata_lbl->Tag = "Dynamic"; Param_Ydata_lbl->SetBounds(650, 160, 150, 20);
-      Param_Zdata_lbl->Name = "Param_Zdata_lbl"; Param_Zdata_lbl->Text = "PARAMETER VALUE(Z):"; Param_Zdata_lbl->Tag = "Dynamic"; Param_Zdata_lbl->SetBounds(650, 190, 150, 20);
-
-      Param_data_tb->Name = "Param_data_tb"; Param_data_tb->Enabled =false ; Param_data_tb->Tag = "Dynamic"; Param_data_tb->SetBounds(850, 100, 75, 20);
-      Param_Xdata_tb->Name = "Param_Xdata_tb"; Param_Xdata_tb->Enabled = false; Param_Xdata_tb->Tag = "Dynamic"; Param_Xdata_tb->SetBounds(850, 130, 75, 20);
-      Param_Ydata_tb->Name = "Param_Ydata_tb"; Param_Ydata_tb->Enabled =false ; Param_Ydata_tb->Tag = "Dynamic"; Param_Ydata_tb->SetBounds(850, 160, 75, 20);
-      Param_Zdata_tb->Name = "Param_Zdata_tb"; Param_Zdata_tb->Enabled =false ; Param_Zdata_tb->Tag = "Dynamic"; Param_Zdata_tb->SetBounds(850, 190, 75, 20);
-      
-      
       ReadParams_btn->Click += gcnew EventHandler(this,&MainForm::ReadParams_btn_Clicked);
-      FromParam_tb->Name = "FromParam_tb"; FromParam_tb->Tag = "Dynamic"; FromParam_tb->SetBounds(150, 100, 50, 20);
-      ToParam_tb->Name = "ToParam_tb"; ToParam_tb->Tag = "Dynamic"; ToParam_tb->SetBounds(150, 140, 50, 20);
+      
       ///////////////////////////////////////////////////
       Button^ SetParam_btn = gcnew Button();
       SetParam_btn->Name = "SetParam_btn"; SetParam_btn->Text = "SET PARAMETER"; SetParam_btn->Tag = "Dynamic"; SetParam_btn->SetBounds(970, 150, 150, 20); SetParam_btn->Enabled = false;
@@ -286,6 +270,7 @@ namespace FanucMillTools {
       //////////////Data Grid Creation/////////////////////
       DataGridView^ Params_dgv = gcnew DataGridView();
       Params_dgv->Name = "Params_dgv";
+      Params_dgv->Tag = "Dynamic";
       Params_dgv->SetBounds(50,230, 1750, 800);
       Params_dgv->Columns->Add("CNCIP_col", "CNC IP");
       Params_dgv->Columns->Add("ParamNum_col", "Param Num");
@@ -350,6 +335,7 @@ namespace FanucMillTools {
       Params_dgv->Columns->Add("ParamDisplay_col", "ParamDisplay");
       Params_dgv->Columns->Add("ParamOthers_col", "ParamOthers");
       Params_dgv->Columns->Add("ParamReadDate_col", "ParamReadDate");
+      //Params_dgv->SelectionChanged += gcnew EventHandler(this, &MainForm::Params_dgv_SelectionChanged); Event Handler added after reading Parameters ( because event is fired when adding rows to DataGridView)
       Controls->Add(InfoLabel_lbl);
       Controls->Add(FromParam_tb);
       Controls->Add(ToParam_tb);
@@ -367,25 +353,22 @@ namespace FanucMillTools {
       Controls->Add(Param_Xdata_tb);
       Controls->Add(Param_Ydata_tb);
       Controls->Add(Param_Zdata_tb);
-      Params_dgv->SelectionChanged += gcnew EventHandler(this, &MainForm::Params_dgv_SelectionChanged);
+      
       //////////////////////////////////////
       FocasReadNumParams(this);
-      
-      
   }
 private: System::Void ReadParams_btn_Clicked(Object^ sender, EventArgs^ e)
-{       FocasReadParams(this);
-           
- }
-private: System::Void SetParams_btn_Clicked(Object^ sender, EventArgs^ e)
 {
-  short ret=FocasWriteParam(this);
-  
-
+    DataGridView^ Params_dgv = (DataGridView^)Controls["Params_dgv"];
+    FocasReadParams(this);
+    Params_dgv->SelectionChanged += gcnew EventHandler(this, &MainForm::Params_dgv_SelectionChanged);
+}
+private: System::Void SetParams_btn_Clicked(Object^ sender, EventArgs^ e)
+{short ret=FocasWriteParam(this);
 }
 private: System::Void Connect_btn_Click(System::Object^ sender, System::EventArgs^ e)
 {
-    FocasConnect(this);
+ FocasConnect(this);
 }
 private: System::Void Disconnect_btn_Click(System::Object^ sender, System::EventArgs^ e) 
 {
@@ -404,7 +387,7 @@ private: System::Void Disconnect_btn_Click(System::Object^ sender, System::Event
       //////////////////////////////////////////////////
       short ParamNo = 0;
       short ParamType = 0;
-      int SelRows = Params_dgv->SelectedRows->Count;
+      int SelRows =Params_dgv->SelectedRows->Count;
       int SelCells = Params_dgv->SelectedCells->Count;
       if (SelRows == 0 && SelCells > 0) Params_dgv->SelectedCells[0]->OwningRow->Selected = true;
       if (SelRows>1) { MessageBox::Show("Select Only one parameter");return;}
@@ -484,23 +467,51 @@ private: System::Void Disconnect_btn_Click(System::Object^ sender, System::Event
       Param_no_lbl->Text = "Param No: " +ParamNo.ToString();
   }
 private: System::Void toolOffsetsToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
-{Label^ InfoLabel_lbl = gcnew Label(); InfoLabel_lbl->Name = "InfoLabel_lbl"; InfoLabel_lbl->Tag = "Dynamic"; InfoLabel_lbl->SetBounds(1200, 60, 250, 20); InfoLabel_lbl->Visible = false;
- Label^ FromToolOffset_lbl = gcnew Label(); FromToolOffset_lbl->Name = "FromToolOffset_lbl"; FromToolOffset_lbl->Text = "FROM ToolOffset:"; FromToolOffset_lbl->Tag = "Dynamic"; FromToolOffset_lbl->SetBounds(50, 100, 150, 20);
- TextBox^ FromToolOffset_tb = gcnew TextBox(); FromToolOffset_tb->Name = "FromToolOffset_tb"; FromToolOffset_tb->Tag = "Dynamic"; FromToolOffset_tb->SetBounds(200, 100, 50, 20);
- Label^ ToToolOffset_lbl = gcnew Label(); ToToolOffset_lbl->Name = "ToToolOffset_lbl"; ToToolOffset_lbl->Text = "TO ToolOffset:"; ToToolOffset_lbl->Tag = "Dynamic"; ToToolOffset_lbl->SetBounds(50, 140, 150, 20);
- TextBox^ ToToolOffset_tb = gcnew TextBox(); ToToolOffset_tb->Name = "ToToolOffset_tb"; ToToolOffset_tb->Tag = "Dynamic"; ToToolOffset_tb->SetBounds(200, 140, 50, 20);
+{short ToolOffsets = 0;
+    List <Control^> DynamicControls;
+    for each (Control ^ ctrl in this->Controls)
+    {
+        if (ctrl->Tag == "Dynamic") DynamicControls.Add(ctrl);
+    }
+    for each (Control ^ ctrl in DynamicControls)
+    {
+        Controls->Remove(ctrl);
+    }
+ Label^ InfoLabel_lbl = gcnew Label(); InfoLabel_lbl->Name = "InfoLabel_lbl"; InfoLabel_lbl->Tag = "Dynamic"; InfoLabel_lbl->SetBounds(1200, 60, 250, 20); InfoLabel_lbl->Visible = false;
+ Label^ FromToolOffset_lbl = gcnew Label(); FromToolOffset_lbl->Name = "FromToolOffset_lbl"; FromToolOffset_lbl->Text = "FROM Tool:"; FromToolOffset_lbl->Tag = "Dynamic"; FromToolOffset_lbl->SetBounds(50, 100, 150, 20);
+ TextBox^ FromToolOffset_tb = gcnew TextBox(); FromToolOffset_tb->Name = "FromToolOffset_tb"; FromToolOffset_tb->Tag = "Dynamic"; FromToolOffset_tb->SetBounds(200, 100, 50, 20); FromToolOffset_tb->TabIndex = 0;
+ Label^ ToToolOffset_lbl = gcnew Label(); ToToolOffset_lbl->Name = "ToToolOffset_lbl"; ToToolOffset_lbl->Text = "TO Tool:"; ToToolOffset_lbl->Tag = "Dynamic"; ToToolOffset_lbl->SetBounds(50, 140, 150, 20);
+ TextBox^ ToToolOffset_tb = gcnew TextBox(); ToToolOffset_tb->Name = "ToToolOffset_tb"; ToToolOffset_tb->Tag = "Dynamic"; ToToolOffset_tb->SetBounds(200, 140, 50, 20); ToToolOffset_tb->TabIndex = 1;
  Button^ ReadToolOffsets_btn = gcnew Button(); ReadToolOffsets_btn->Name = "ReadToolOffsets_btn"; ReadToolOffsets_btn->Text = "READ TOOL OFFSETS"; ReadToolOffsets_btn->Tag = "Dynamic"; ReadToolOffsets_btn->SetBounds(275, 120, 175, 20);
  Label^ ToolOffset_no_lbl = gcnew Label(); ToolOffset_no_lbl->Name = "ToolOffset_no_lbl";  ToolOffset_no_lbl->Tag = "Dynamic"; ToolOffset_no_lbl->SetBounds(450, 120, 150, 20);
  ReadToolOffsets_btn->Click += gcnew EventHandler(this, &MainForm::ReadToolOffsets_btn_Click);
- DataGridView^ ToolOffsets_dgv = gcnew DataGridView();
+ Label^ ToolRadius_lbl = gcnew Label(); ToolRadius_lbl->Name = "ToolRadius_lbl"; ToolRadius_lbl->Text = "RADIUS:"; ToolRadius_lbl->Tag = "Dynamic"; ToolRadius_lbl->SetBounds(650, 160, 150, 20);
+ Label^ ToolRadiusWear_lbl = gcnew Label(); ToolRadiusWear_lbl->Name = "ToolRadiusWear_lbl"; ToolRadiusWear_lbl->Text = "RADIUS (WEAR):"; ToolRadiusWear_lbl->Tag = "Dynamic"; ToolRadiusWear_lbl->SetBounds(650, 190, 150, 20);
+ Label^ ToolLength_lbl = gcnew Label(); ToolLength_lbl->Name = "ToolLength_lbl"; ToolLength_lbl->Text = "LENGTH:"; ToolLength_lbl->Tag = "Dynamic"; ToolLength_lbl->SetBounds(650, 100, 150, 20);
+ Label^ ToolLengthWear_lbl = gcnew Label(); ToolLengthWear_lbl->Name = "ToolLengthWear_lbl"; ToolLengthWear_lbl->Text = "LENGTH (WEAR):"; ToolLengthWear_lbl->Tag = "Dynamic"; ToolLengthWear_lbl->SetBounds(650, 130, 150, 20);
+ TextBox^ ToolRadius_tb = gcnew TextBox(); ToolRadius_tb->Name = "ToolRadius_tb"; ToolRadius_tb->Enabled = false; ToolRadius_tb->Tag = "Dynamic"; ToolRadius_tb->SetBounds(850, 160, 75, 20); ToolRadius_tb->TabIndex = 3;
+ TextBox^ ToolRadiusWear_tb = gcnew TextBox(); ToolRadiusWear_tb->Name = "ToolRadiusWear_tb"; ToolRadiusWear_tb->Enabled = false; ToolRadiusWear_tb->Tag = "Dynamic"; ToolRadiusWear_tb->SetBounds(850, 190, 75, 20); ToolRadiusWear_tb->TabIndex = 4;
+ TextBox^ ToolLength_tb = gcnew TextBox(); ToolLength_tb->Name = "ToolLength_tb"; ToolLength_tb->Enabled = false; ToolLength_tb->Tag = "Dynamic"; ToolLength_tb->SetBounds(850, 100, 75, 20); ToolLength_tb->TabIndex = 5;
+ TextBox^ ToolLengthWear_tb = gcnew TextBox(); ToolLengthWear_tb->Name = "ToolLengthWear_tb"; ToolLengthWear_tb->Enabled = false; ToolLengthWear_tb->Tag = "Dynamic"; ToolLengthWear_tb->SetBounds(850, 130, 75, 20); ToolLengthWear_tb->TabIndex = 6;
+ 
+ Button^ SetToolOffset_btn = gcnew Button();
+ SetToolOffset_btn->Name = "SetToolOffset_btn"; SetToolOffset_btn->Text = "SET TOOL OFFSET"; SetToolOffset_btn->Tag = "Dynamic"; SetToolOffset_btn->SetBounds(970, 150, 150, 20); SetToolOffset_btn->Enabled = false;
+ SetToolOffset_btn->Click += gcnew EventHandler(this, &MainForm::SetToolOffsets_btn_Click);
+
+ DataGridView^ ToolOffsets_dgv = gcnew DataGridView(); ToolOffsets_dgv->TabIndex = 2;
  ToolOffsets_dgv->Name = "ToolOffsets_dgv";
- ToolOffsets_dgv->SetBounds(50, 230, 1750, 800);
+ ToolOffsets_dgv->Tag = "Dynamic";
+ ToolOffsets_dgv->SetBounds(50, 230, 600, 800);
  ToolOffsets_dgv->Columns->Add("ToolOffset_No_col", "Tool Offset No");
  ToolOffsets_dgv->Columns->Add("ToolLength_col", "Tool Length");
+ ToolOffsets_dgv->Columns["ToolLength_col"]->DefaultCellStyle->Format = "N3";
  ToolOffsets_dgv->Columns->Add("ToolLengthWear_col", "Tool Length Wear");
+ ToolOffsets_dgv->Columns["ToolLengthWear_col"]->DefaultCellStyle->Format = "N3";
  ToolOffsets_dgv->Columns->Add("ToolRadius_col", "Tool Radius");
+ ToolOffsets_dgv->Columns["ToolRadius_col"]->DefaultCellStyle->Format = "N3";
  ToolOffsets_dgv->Columns->Add("ToolRadiusWear_col", "Tool Radius Wear");
- 
+ ToolOffsets_dgv->Columns["ToolRadiusWear_col"]->DefaultCellStyle->Format = "N3";
+ //ToolOffsets_dgv->SelectionChanged += gcnew EventHandler(this, &MainForm::ToolOffsets_dgv_SelectionChanged);
  Controls->Add(InfoLabel_lbl);
  Controls->Add(FromToolOffset_lbl);
  Controls->Add(FromToolOffset_tb);
@@ -508,48 +519,56 @@ private: System::Void toolOffsetsToolStripMenuItem_Click(System::Object^ sender,
  Controls->Add(ToToolOffset_tb);
  Controls->Add(ReadToolOffsets_btn);
  Controls->Add(ToolOffset_no_lbl);
+ Controls->Add(ToolRadius_lbl);
+ Controls->Add(ToolRadiusWear_lbl);
+ Controls->Add(ToolLength_lbl);
+ Controls->Add(ToolLengthWear_lbl);
+ Controls->Add(ToolRadius_tb);
+ Controls->Add(ToolRadiusWear_tb);
+ Controls->Add(ToolLength_tb);
+ Controls->Add(ToolLengthWear_tb);
  Controls->Add(ToolOffsets_dgv);
- FocasReadNumToolOffsets(this);
+ Controls->Add(SetToolOffset_btn);
+ FocasReadNumToolOffsets(this,ToolOffsets);
+ FromToolOffset_tb->Text = "1";
+ ToToolOffset_tb->Text = ToolOffsets.ToString();
+ //ToToolOffset_tb->Update();
 }
  private: System::Void ReadToolOffsets_btn_Click(System::Object^ sender, System::EventArgs^ e)
- {
-     Label^ ToolRadius_lbl = gcnew Label();
-     Label^ ToolRadiusWear_lbl = gcnew Label();
-     Label^ ToolLength_lbl = gcnew Label();
-     Label^ ToolLengthWear_lbl = gcnew Label();
-     TextBox^ ToolRadius_tb = gcnew TextBox();
-     TextBox^ ToolRadiusWear_tb = gcnew TextBox();
-     TextBox^ ToolLength_tb = gcnew TextBox();
-     TextBox^ ToolLengthWear_tb = gcnew TextBox();
-
-     ToolRadius_lbl->Name = "ToolRadius_lbl"; ToolRadius_lbl->Text = "RADIUS:"; ToolRadius_lbl->Tag = "Dynamic"; ToolRadius_lbl->SetBounds(650, 100, 150, 20);
-     ToolRadiusWear_lbl->Name = "ToolRadiusWear_lbl"; ToolRadiusWear_lbl->Text = "RADIUS (WEAR):"; ToolRadiusWear_lbl->Tag = "Dynamic"; ToolRadiusWear_lbl->SetBounds(650, 130, 150, 20);
-     ToolLength_lbl->Name = "ToolLength_lbl"; ToolLength_lbl->Text = "LENGTH:"; ToolLength_lbl->Tag = "Dynamic"; ToolLength_lbl->SetBounds(650, 160, 150, 20);
-     ToolLengthWear_lbl->Name = "ToolLengthWear_lbl"; ToolLengthWear_lbl->Text = "LENGTH (WEAR):"; ToolLengthWear_lbl->Tag = "Dynamic"; ToolLengthWear_lbl->SetBounds(650, 190, 150, 20);
-
-     ToolRadius_tb->Name = "ToolRadius_tb"; ToolRadius_tb->Enabled = false; ToolRadius_tb->Tag = "Dynamic"; ToolRadius_tb->SetBounds(850, 100, 75, 20);
-     ToolRadiusWear_tb->Name = "ToolRadiusWear_tb"; ToolRadiusWear_tb->Enabled = false; ToolRadiusWear_tb->Tag = "Dynamic"; ToolRadiusWear_tb->SetBounds(850, 130, 75, 20);
-     ToolLength_tb->Name = "ToolLength_tb"; ToolLength_tb->Enabled = false; ToolLength_tb->Tag = "Dynamic"; ToolLength_tb->SetBounds(850, 160, 75, 20);
-     ToolLengthWear_tb->Name = "ToolLengthWear_tb"; ToolLengthWear_tb->Enabled = false; ToolLengthWear_tb->Tag = "Dynamic"; ToolLengthWear_tb->SetBounds(850, 190, 75, 20);
-     
-     Button^ SetToolOffset_btn = gcnew Button();
-     SetToolOffset_btn->Name = "SetToolOffset_btn"; SetToolOffset_btn->Text = "SET PARAMETER"; SetToolOffset_btn->Tag = "Dynamic"; SetToolOffset_btn->SetBounds(970, 150, 150, 20); SetToolOffset_btn->Enabled = false;
-     SetToolOffset_btn->Click += gcnew EventHandler(this, &MainForm::SetToolOffsets_btn_Click);
-
-     Controls->Add(ToolRadius_lbl);
-     Controls->Add(ToolRadiusWear_lbl);
-     Controls->Add(ToolLength_lbl);
-     Controls->Add(ToolLengthWear_lbl);
-     Controls->Add(ToolRadius_tb);
-     Controls->Add(ToolRadiusWear_tb);
-     Controls->Add(ToolLength_tb);
-     Controls->Add(ToolLengthWear_tb);
-     FocasReadToolOffsets(this);
+ {DataGridView^ ToolOffsets_dgv = (DataGridView^)Controls["ToolOffsets_dgv"];
+  FocasReadToolOffsets(this);
+  ToolOffsets_dgv->SelectionChanged += gcnew EventHandler(this, &MainForm::ToolOffsets_dgv_SelectionChanged);
+ }
+  private: System::Void SetToolOffsets_btn_Click(System::Object^ sender, System::EventArgs^ e)
+  {
+   FocasWriteToolOffset(this);
   }
-        private: System::Void SetToolOffsets_btn_Click(System::Object^ sender, System::EventArgs^ e)
-        {
-            short ret=FocasWriteToolOffset(this);
-        }
+  private:System::Void ToolOffsets_dgv_SelectionChanged(Object^ sender, EventArgs^ e)
+  {   DataGridView^ ToolOffsets_dgv = (DataGridView^)Controls["ToolOffsets_dgv"];
+      TextBox^ ToolRadius_tb = (TextBox^)Controls["ToolRadius_tb"];
+      TextBox^ ToolRadiusWear_tb = (TextBox^)Controls["ToolRadiusWear_tb"];
+      TextBox^ ToolLength_tb = (TextBox^)Controls["ToolLength_tb"];
+      TextBox^ ToolLengthWear_tb = (TextBox^)Controls["ToolLengthWear_tb"];
+      Label^ ToolOffset_no_lbl = (Label^)Controls["ToolOffset_no_lbl"];
+      Button^ SetToolOffset_btn = (Button^)Controls["SetToolOffset_btn"];
+      Controls["SetToolOffset_btn"]->Enabled = true;
+      //////////////////////////////////////////////////
+      short ToolOffsetNo = 0;
+      short ToolOffsetType = 0;
+      int SelRows = ToolOffsets_dgv->SelectedRows->Count;
+      int SelCells = ToolOffsets_dgv->SelectedCells->Count;
+      if (SelRows == 0 && SelCells > 0) ToolOffsets_dgv->SelectedCells[0]->OwningRow->Selected = true;
+      if (SelRows > 1) {MessageBox::Show("Select Only one ToolOffset"); return; }
+      int CurrRowindex = ToolOffsets_dgv->CurrentRow->Index;
+      ToolOffsetNo = short::Parse(ToolOffsets_dgv->CurrentRow->Cells[0]->Value->ToString());
+      //ToolOffsetType = short::Parse(ToolOffsets_dgv->CurrentRow->Cells[2]->Value->ToString());
+      ToolRadius_tb->Enabled = true; ToolRadiusWear_tb->Enabled = true; ToolLength_tb->Enabled = true; ToolLengthWear_tb->Enabled = true;
+      ToolRadius_tb->Text = Convert::ToSingle(ToolOffsets_dgv->CurrentRow->Cells[3]->Value).ToString("N3");
+      ToolRadiusWear_tb->Text = Convert::ToSingle(ToolOffsets_dgv->CurrentRow->Cells[4]->Value).ToString("N3");
+      ToolLength_tb->Text = Convert::ToSingle(ToolOffsets_dgv->CurrentRow->Cells[1]->Value).ToString("N3");
+      ToolLengthWear_tb->Text = Convert::ToSingle(ToolOffsets_dgv->CurrentRow->Cells[2]->Value).ToString("N3");
+      ToolOffset_no_lbl->Text = "ToolOffset No: " + ToolOffsetNo.ToString();
+  }
 }; // end of class MainForm
 } // end of namespace FanucMillTools
 

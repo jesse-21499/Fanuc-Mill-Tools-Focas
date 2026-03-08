@@ -5,9 +5,7 @@
 
 #include <string>
 namespace Utils 
-{
-
-  bool GetBit(short n, int i)
+{bool GetBit(short n, int i)
   {
    return ((n >> i) & 1);
   }
@@ -16,7 +14,5 @@ namespace Utils
       unsigned short shifted = n >> i;
       unsigned short mask = (1 << j) - 1;
       return shifted & mask;
-      
   }
-
 } // end of namespace Utils

@@ -65,7 +65,7 @@ extern "C" {
 #define MAX_AXIS        6
 #define MAX_SPINDLE     1
 #else
-#define MAX_AXIS        32
+#define MAX_AXIS        32 //8 in original Fwlib64.h
 #define MAX_SPINDLE     4
 #endif
 

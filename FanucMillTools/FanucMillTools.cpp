@@ -34,8 +34,7 @@ short FocasReadNumParams(Form^MainFrm)
 
 
 short FocasReadParams(Form^ MainFrm)
-{   short ret = 0;//return value
-    DataGridView^ Params_dgv = (DataGridView^) MainFrm->Controls["Params_dgv"];
+{   DataGridView^ Params_dgv = (DataGridView^) MainFrm->Controls["Params_dgv"];
     TextBox^ FromParam_tb=(TextBox^)MainFrm->Controls["FromParam_tb"];
     TextBox^ ToParam_tb=(TextBox^)MainFrm->Controls["ToParam_tb"];
     Label^ FromParam_lbl=(Label^)MainFrm->Controls["FromParam_lbl"];
@@ -50,6 +49,7 @@ short FocasReadParams(Form^ MainFrm)
     InfoLabel_lbl->BackColor = Color::Orange;
     InfoLabel_lbl->Update();
     /////////////////////////
+    short ret = 0;//return value
     ODBSYS CncSysInfo;
     IODBPSD Param;
     short StartParam = 0;
@@ -351,14 +351,12 @@ short FocasReadParams(Form^ MainFrm)
         }
     }
     
-        InfoLabel_lbl->BackColor = Color::Transparent;
-        InfoLabel_lbl->Visible = false;
-    
+    InfoLabel_lbl->BackColor = Color::Transparent;
+    InfoLabel_lbl->Visible = false;
     return ret;
 }
 short FocasConnect(Form^ MainFrm)
-{
-    if (Connected) { MessageBox::Show("ALREADY CONNECTED"); return 0; }
+{   if (Connected) {MessageBox::Show("ALREADY CONNECTED"); return 0; }
     TextBox^ CNC_IP_tb = (TextBox^)MainFrm->Controls["CNC_IP_tb"];
     TextBox^ FocasHndl_tb = (TextBox^)MainFrm->Controls["FocasHndl_tb"];
     Button^ Connect_btn=(Button^)MainFrm->Controls["Connect_btn"];
@@ -580,19 +578,19 @@ short FocasWriteParam(Form^ MainFrm)
             break;
         }
     short ParamLength = 4 + (ParamSize * NoAxis);
-    short ret = cnc_wrparam(FHndl, ParamLength, &Param);
+    short ret = cnc_wrparam(FHndl, ParamLength, &Param); 
+    if (ret == EW_OK)
+    {
+        InfoLabel_lbl->BackColor = Color::Transparent;
+        InfoLabel_lbl->Visible = false;
+        MessageBox::Show("UPDATED PARAMETER IN CNC");
+    }
     if (ret != EW_OK)
     {
         InfoLabel_lbl->BackColor = Color::Transparent;
         InfoLabel_lbl->Visible = false;
         MessageBox::Show("ERROR: " + ret.ToString());
 
-    }
-    if (ret == EW_OK)
-    {
-        InfoLabel_lbl->BackColor = Color::Transparent;
-        InfoLabel_lbl->Visible = false;
-        MessageBox::Show("UPDATED PARAMETER IN CNC");
     }
     return ret;
     //Param_data_tb->Update();
@@ -628,19 +626,31 @@ short FocasReadCNCInfo(Form^ MainFrm)
  return ret;
 }
 short FocasReadToolOffsets(Form^ MainFrm)
-{
-    DataGridView^ ToolOffsets_dgv = (DataGridView^) MainFrm->Controls["ToolOffsets_dgv"];
-    short ToolOffsets = 0;
-    short ToolOffMemType = 0;
-    String^ sToolOffMemType = "";
-    ODBTLINF ToolOffsInfo;
-    ODBTLINF2 ToolOffsInfo2;
+{DataGridView^ ToolOffsets_dgv = (DataGridView^) MainFrm->Controls["ToolOffsets_dgv"];
+ //Label^ FromToolOffset_lbl = (Label^)MainFrm->Controls["FromToolOffset_lbl"];
+ TextBox^ FromToolOffset_tb = (TextBox^)MainFrm->Controls["FromToolOffset_tb"];
+ //Label^ ToToolOffset_lbl = (Label^)MainFrm->Controls["ToToolOffset_lbl"];
+ TextBox^ ToToolOffset_tb = (TextBox^)MainFrm->Controls["ToToolOffset_tb"];
+ Label^ InfoLabel_lbl = (Label^)MainFrm->Controls["InfoLabel_lbl"];
+ Label^ ToolOffset_no_lbl = (Label^)MainFrm->Controls["ToolOffset_no_lbl"];
+ short FirstToolOffset = short::Parse(FromToolOffset_tb->Text);
+ short LastToolOffset= short::Parse(ToToolOffset_tb->Text);
+ ToolOffsets_dgv->Rows->Clear();
+ InfoLabel_lbl->Visible = true;
+ InfoLabel_lbl->Text = "READING TOOL OFFSETS FROM CNC";
+ InfoLabel_lbl->BackColor = Color::Orange;
+ InfoLabel_lbl->Update();
+ short ToolOffsets = 0;
+ short ToolOffMemType = 0;
+ String^ sToolOffMemType = "";
+ ODBTLINF ToolOffsInfo;
+ ODBTLINF2 ToolOffsInfo2;
     ODBTOFS ToolOffsRad;
     ODBTOFS ToolOffsRadWear;
     ODBTOFS ToolOffsLen;
     ODBTOFS ToolOffsLenWear;
     IODBPSD Param;
-    float ToolOffsetUnit = 0;
+    double ToolOffsetUnit = 0;
     bool AvailableXOffset = false;
     bool AvailableYOffset = false;
     bool AvailableZOffset = false;
@@ -694,29 +704,95 @@ short FocasReadToolOffsets(Form^ MainFrm)
     AvailableSecondGeomOffset = GetBit(ToolOffsInfo2.ofs_enable, 5);
     Available4thAxisOffset = GetBit(ToolOffsInfo2.ofs_enable,7);
     Available5thAxisOffset = GetBit(ToolOffsInfo2.ofs_enable, 8);
-    for (int i=1;i<=ToolOffsets;i++)
+    for (int i=FirstToolOffset;i<=LastToolOffset;i++)
     {ret = cnc_rdtofs(FHndl, i, 1, 8, &ToolOffsRad); if (ret != EW_OK) {MessageBox::Show("Error returned by cnc_rdtofs: " + ret.ToString()+ " Offset No (Radius): "+i.ToString()); return ret;}
      ret = cnc_rdtofs(FHndl, i, 0, 8, &ToolOffsRadWear); if (ret != EW_OK) {MessageBox::Show("Error returned by cnc_rdtofs: " + ret.ToString() + "Offset No (Radius Wear): " + i.ToString()); return ret;}
      ret = cnc_rdtofs(FHndl, i, 3, 8, &ToolOffsLen); if (ret != EW_OK) {MessageBox::Show("Error returned by cnc_rdtofs: " + ret.ToString() + "Offset No (Length): " + i.ToString()); return ret;}
      ret = cnc_rdtofs(FHndl, i, 2, 8, &ToolOffsLenWear); if (ret != EW_OK) {MessageBox::Show("Error returned by cnc_rdtofs: " + ret.ToString() + "Offset No (Length Wear): " + i.ToString()); return ret;}
-     ToolOffsets_dgv->Rows->Add(ToolOffsRad.datano, ToolOffsLen.data * ToolOffsetUnit, ToolOffsLenWear.data * ToolOffsetUnit,ToolOffsRad.data * ToolOffsetUnit, ToolOffsRad.data * ToolOffsetUnit );
+     ToolOffsets_dgv->Rows->Add(ToolOffsRad.datano, ToolOffsLen.data * ToolOffsetUnit, ToolOffsLenWear.data * ToolOffsetUnit,ToolOffsRad.data * ToolOffsetUnit, ToolOffsRadWear.data * ToolOffsetUnit );
+     ToolOffset_no_lbl->Text = "Tool No: " + i.ToString();
+     ToolOffset_no_lbl->Update();
     }
+    InfoLabel_lbl->BackColor = Color::Transparent;
+    InfoLabel_lbl->Visible = false;
     //cnc_rdtofsr //Read tool offset value(area specified)
     //cnc_tofs_rnge //Read the effective setting range of tool offset value
     return ret;
 }
 short FocasWriteToolOffset(Form^ MainFrm)
-{//cnc_wrtofs // Write tool offset value
+{
     //cnc_wrtofsr //Write tool offset value(area specified)
-    short ret = 0;
+    DataGridView^ ToolOffsets_dgv = (DataGridView^)MainFrm->Controls["ToolOffsets_dgv"];
+    TextBox^ ToolRadius_tb = (TextBox^)MainFrm->Controls["ToolRadius_tb"];
+    TextBox^ ToolRadiusWear_tb = (TextBox^)MainFrm->Controls["ToolRadiusWear_tb"];
+    TextBox^ ToolLength_tb = (TextBox^)MainFrm->Controls["ToolLength_tb"];
+    TextBox^ ToolLengthWear_tb = (TextBox^)MainFrm->Controls["ToolLengthWear_tb"];
+    Label^ InfoLabel_lbl = (Label^)MainFrm->Controls["InfoLabel_lbl"];
+    InfoLabel_lbl->Visible = true;
+    InfoLabel_lbl->BackColor = Color::Orange;
+    InfoLabel_lbl->Text = "WRITING TOOL OFFSET TO CNC";
+    InfoLabel_lbl->Update();
+    int SelRows = ToolOffsets_dgv->SelectedRows->Count;
+    int SelCells = ToolOffsets_dgv->SelectedCells->Count;
+    
+    if (SelRows == 0 && SelCells > 0) ToolOffsets_dgv->SelectedCells[0]->OwningRow->Selected = true;
+    if (SelRows != 1) { MessageBox::Show("Select only one ToolOffset"); return 1; }
+    int CurrRowindex = ToolOffsets_dgv->CurrentRow->Index;
+    short ToolOffsetNo = short::Parse(ToolOffsets_dgv->CurrentRow->Cells[0]->Value->ToString());
+    IODBPSD Param;
+    //float ToolOffsetUnit = 0;
+    short DecimalsNum = 0;
+    short ret = cnc_rdparam(FHndl, 5042, ALL_AXES, 4 + MAX_AXIS, &Param); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdparam (Param 5042): " + ret.ToString()); return ret; }
+    switch (Param.u.cdata)
+    {
+    case 0:
+        //ToolOffsetUnit = 0.001;
+        DecimalsNum = 3;
+        break;
+    case 1:
+        //ToolOffsetUnit = 0.01;
+        DecimalsNum = 2;
+        break;
+    case 2:
+        //ToolOffsetUnit = 0.0001;
+        DecimalsNum = 4;
+        break;
+    case 4:
+        //ToolOffsetUnit = 0.00001;
+        DecimalsNum = 5;
+        break;
+    case 8:
+        //ToolOffsetUnit = 0.000001;
+        DecimalsNum = 6;
+        break;
+    }
+    
+    if ((ToolLength_tb->Text->Length - ToolLength_tb->Text->IndexOf('.') - 1) != DecimalsNum) { MessageBox::Show("ENTER " + DecimalsNum + " DECIMALS"); ret = 1; goto finish; }
+    if ((ToolLengthWear_tb->Text->Length - ToolLengthWear_tb->Text->IndexOf('.') - 1) != DecimalsNum) { MessageBox::Show("ENTER " + DecimalsNum + " DECIMALS"); ret = 1; goto finish; }
+    if ((ToolRadius_tb->Text->Length - ToolRadius_tb->Text->IndexOf('.') - 1) != DecimalsNum) { MessageBox::Show("ENTER " + DecimalsNum + " DECIMALS"); ret = 1; goto finish; }
+    if ((ToolRadiusWear_tb->Text->Length - ToolRadiusWear_tb->Text->IndexOf('.') - 1) != DecimalsNum) { MessageBox::Show("ENTER " + DecimalsNum + " DECIMALS"); ret = 1; goto finish; }
+    
+    ret = cnc_wrtofs(FHndl, ToolOffsetNo, 3, 8, Convert::ToInt32(Convert::ToSingle(ToolLength_tb->Text)*Math::Pow(10,DecimalsNum))); if (ret != EW_OK) goto finish; // Write Tool Length offset value
+    ret = cnc_wrtofs(FHndl, ToolOffsetNo, 2, 8, Convert::ToInt32(Convert::ToSingle(ToolLengthWear_tb->Text)*Math::Pow(10,DecimalsNum))); if (ret != EW_OK) goto finish; // Write Tool Length Wear offset value
+    ret = cnc_wrtofs(FHndl, ToolOffsetNo, 1, 8, Convert::ToInt32(Convert::ToSingle(ToolRadius_tb->Text)*Math::Pow(10,DecimalsNum))); if (ret != EW_OK) goto finish; // Write Tool Radius offset value
+    ret = cnc_wrtofs(FHndl, ToolOffsetNo, 0, 8, Convert::ToInt32(Convert::ToSingle(ToolRadiusWear_tb->Text)*Math::Pow(10,DecimalsNum))); if (ret != EW_OK) goto finish; // Write Tool Radius Wear offset value
+    InfoLabel_lbl->BackColor = Color::Transparent;
+    InfoLabel_lbl->Visible = false;
+    MessageBox::Show("UPDATED TOOL OFFSET IN CNC");
+    finish:
+    if (ret != EW_OK)
+    {InfoLabel_lbl->BackColor = Color::Transparent;
+     InfoLabel_lbl->Visible = false;
+     MessageBox::Show("ERROR RETURNED BY cnc_wrtofs: " + ret.ToString());
+    }
     return ret;
 }
-short FocasReadNumToolOffsets(Form^ MainFrm)
+short FocasReadNumToolOffsets(Form^ MainFrm,short &ToolOffsets)
 {
     short ret = 0;
-    TextBox^ FromToolOffset_tb = (TextBox^)MainFrm->Controls["FromToolOffset_tb"];
-    TextBox^ ToToolOffset_tb = (TextBox^)MainFrm->Controls["ToToolOffset_tb"];
-    short ToolOffsets = 0;
+    //TextBox^ FromToolOffset_tb = (TextBox^)MainFrm->Controls["FromToolOffset_tb"];
+    //TextBox^ ToToolOffset_tb = (TextBox^)MainFrm->Controls["ToToolOffset_tb"];
+    ToolOffsets = 0;
     //short ToolOffMemType = 0;
     //String^ sToolOffMemType = "";
     ODBTLINF ToolOffsInfo;
@@ -737,9 +813,9 @@ short FocasReadNumToolOffsets(Form^ MainFrm)
     //bool Available5thAxisOffset = false;
     //Read tool offset information
     ret = cnc_rdtofsinfo(FHndl, &ToolOffsInfo); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdtofsinfo: " + ret.ToString()); return ret; }
-    FromToolOffset_tb->Text = "1";
+    //FromToolOffset_tb->Text = "1";
     ToolOffsets = ToolOffsInfo.use_no;
-    ToToolOffset_tb->Text = ToolOffsets.ToString();
+    //ToToolOffset_tb->Text = ToolOffsets.ToString();
     //ToToolOffset_tb->Update();
     return ret;
 }

@@ -13,7 +13,7 @@ namespace FanucMillTools
 	bool Connected = false;
 	double EllapsedTime = 0; //Ellapsed time in millisecs
 	short FocasReadNumParams(Form^ MainFrm);
-	short FocasReadNumToolOffsets(Form^ MainFrm);
+	short FocasReadNumToolOffsets(Form^ MainFrm,short &ToolOffsets);
 	short FocasConnect(Form^ MainFrm);
 	short FocasDisconnect(Form^ MainFrm);
 	short FocasReadParams(Form^ MainFrm);
