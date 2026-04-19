@@ -11,6 +11,7 @@ namespace FanucMillTools {
   using namespace System::ComponentModel;
   using namespace System::Collections;
   using namespace System::Windows::Forms;
+  //using namespace System::Reflection::Emit;
   using namespace System::Data;
   using namespace System::Data::SqlClient;
   using namespace System::Drawing;
@@ -54,15 +55,16 @@ namespace FanucMillTools {
   private: ToolStripMenuItem^ fanucToolStripMenuItem;
   private: ToolStripMenuItem^ nCDataToolStripMenuItem;
   private: ToolStripMenuItem^ readParameterToolStripMenuItem;
-  private: Label^ CNC_IP_lbl;
+  private: System::Windows::Forms::Label^ CNC_IP_lbl;
   private: TextBox^ CNC_IP_tb;
   private: Button^ Connect_btn;
   private: Button^ Disconnect_btn;
-  private: Label^ FocasHndl_lbl;
+  private: System::Windows::Forms::Label^ FocasHndl_lbl;
   private: TextBox^ FocasHndl_tb;
   private: ToolStripMenuItem^ testToolStripMenuItem;
-  private: Label^ CncInfo_lbl;
+  private: System::Windows::Forms::Label^ CncInfo_lbl;
   private: ToolStripMenuItem^ toolOffsetsToolStripMenuItem;
+  private: System::Windows::Forms::ToolStripMenuItem^ workZeroOffsetsToolStripMenuItem;
 
 
 
@@ -86,6 +88,7 @@ namespace FanucMillTools {
         this->fanucToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->nCDataToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->readParameterToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->toolOffsetsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->testToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->CNC_IP_lbl = (gcnew System::Windows::Forms::Label());
         this->CNC_IP_tb = (gcnew System::Windows::Forms::TextBox());
@@ -94,7 +97,7 @@ namespace FanucMillTools {
         this->FocasHndl_lbl = (gcnew System::Windows::Forms::Label());
         this->FocasHndl_tb = (gcnew System::Windows::Forms::TextBox());
         this->CncInfo_lbl = (gcnew System::Windows::Forms::Label());
-        this->toolOffsetsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->workZeroOffsetsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->menuStrip1->SuspendLayout();
         this->SuspendLayout();
         // 
@@ -119,9 +122,9 @@ namespace FanucMillTools {
         // 
         // nCDataToolStripMenuItem
         // 
-        this->nCDataToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+        this->nCDataToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
             this->readParameterToolStripMenuItem,
-                this->toolOffsetsToolStripMenuItem
+                this->toolOffsetsToolStripMenuItem, this->workZeroOffsetsToolStripMenuItem
         });
         this->nCDataToolStripMenuItem->Name = L"nCDataToolStripMenuItem";
         this->nCDataToolStripMenuItem->Size = System::Drawing::Size(180, 22);
@@ -133,6 +136,13 @@ namespace FanucMillTools {
         this->readParameterToolStripMenuItem->Size = System::Drawing::Size(180, 22);
         this->readParameterToolStripMenuItem->Text = L"Get-Set Parameters";
         this->readParameterToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::readParameterToolStripMenuItem_Click);
+        // 
+        // toolOffsetsToolStripMenuItem
+        // 
+        this->toolOffsetsToolStripMenuItem->Name = L"toolOffsetsToolStripMenuItem";
+        this->toolOffsetsToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->toolOffsetsToolStripMenuItem->Text = L"Tool Offsets";
+        this->toolOffsetsToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::toolOffsetsToolStripMenuItem_Click);
         // 
         // testToolStripMenuItem
         // 
@@ -200,12 +210,12 @@ namespace FanucMillTools {
         this->CncInfo_lbl->Size = System::Drawing::Size(0, 13);
         this->CncInfo_lbl->TabIndex = 11;
         // 
-        // toolOffsetsToolStripMenuItem
+        // workZeroOffsetsToolStripMenuItem
         // 
-        this->toolOffsetsToolStripMenuItem->Name = L"toolOffsetsToolStripMenuItem";
-        this->toolOffsetsToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-        this->toolOffsetsToolStripMenuItem->Text = L"Tool Offsets";
-        this->toolOffsetsToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::toolOffsetsToolStripMenuItem_Click);
+        this->workZeroOffsetsToolStripMenuItem->Name = L"workZeroOffsetsToolStripMenuItem";
+        this->workZeroOffsetsToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->workZeroOffsetsToolStripMenuItem->Text = L"Work Zero Offsets";
+        this->workZeroOffsetsToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::workZeroOffsetsToolStripMenuItem_Click);
         // 
         // MainForm
         // 
@@ -228,6 +238,7 @@ namespace FanucMillTools {
         this->menuStrip1->PerformLayout();
         this->ResumeLayout(false);
         this->PerformLayout();
+
     }
 #pragma endregion
 
@@ -468,12 +479,12 @@ private: System::Void Disconnect_btn_Click(System::Object^ sender, System::Event
   }
 private: System::Void toolOffsetsToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
 {short ToolOffsets = 0;
-    List <Control^> DynamicControls;
-    for each (Control ^ ctrl in this->Controls)
+ List <Control^> DynamicControls;
+ for each (Control ^ ctrl in this->Controls)
     {
         if (ctrl->Tag == "Dynamic") DynamicControls.Add(ctrl);
     }
-    for each (Control ^ ctrl in DynamicControls)
+ for each (Control ^ ctrl in DynamicControls)
     {
         Controls->Remove(ctrl);
     }
@@ -568,6 +579,110 @@ private: System::Void toolOffsetsToolStripMenuItem_Click(System::Object^ sender,
       ToolLength_tb->Text = Convert::ToSingle(ToolOffsets_dgv->CurrentRow->Cells[1]->Value).ToString("N3");
       ToolLengthWear_tb->Text = Convert::ToSingle(ToolOffsets_dgv->CurrentRow->Cells[2]->Value).ToString("N3");
       ToolOffset_no_lbl->Text = "ToolOffset No: " + ToolOffsetNo.ToString();
+  }
+private: System::Void workZeroOffsetsToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
+{   List <Control^> DynamicControls;
+    for each (Control ^ ctrl in this->Controls)
+    {
+     if (ctrl->Tag == "Dynamic") DynamicControls.Add(ctrl);
+    }
+    for each (Control ^ ctrl in DynamicControls)
+    {
+     Controls->Remove(ctrl);
+    }
+    Label^ InfoLabel_lbl = gcnew Label(); InfoLabel_lbl->Name = "InfoLabel_lbl"; InfoLabel_lbl->Tag = "Dynamic"; InfoLabel_lbl->SetBounds(1200, 60, 250, 20); InfoLabel_lbl->Visible = false;
+    Label^ FromWorkZeroOffset_lbl = gcnew Label(); FromWorkZeroOffset_lbl->Name = "FromWorkZeroOffset_lbl"; FromWorkZeroOffset_lbl->Text = "FROM WorkOffset:"; FromWorkZeroOffset_lbl->Tag = "Dynamic"; FromWorkZeroOffset_lbl->SetBounds(50, 100, 150, 20);
+    TextBox^ FromWorkZeroOffset_tb = gcnew TextBox(); FromWorkZeroOffset_tb->Name = "FromWorkZeroOffset_tb"; FromWorkZeroOffset_tb->Tag = "Dynamic"; FromWorkZeroOffset_tb->SetBounds(200, 100, 50, 20); FromWorkZeroOffset_tb->TabIndex = 0;
+    Label^ ToWorkZeroOffset_lbl = gcnew Label(); ToWorkZeroOffset_lbl->Name = "ToWorkZeroOffset_lbl"; ToWorkZeroOffset_lbl->Text = "TO WorkOffset:"; ToWorkZeroOffset_lbl->Tag = "Dynamic"; ToWorkZeroOffset_lbl->SetBounds(50, 140, 150, 20);
+    TextBox^ ToWorkZeroOffset_tb = gcnew TextBox(); ToWorkZeroOffset_tb->Name = "ToWorkZeroOffset_tb"; ToWorkZeroOffset_tb->Tag = "Dynamic"; ToWorkZeroOffset_tb->SetBounds(200, 140, 50, 20); ToWorkZeroOffset_tb->TabIndex = 1;
+    Button^ ReadWorkZeroOffsets_btn = gcnew Button(); ReadWorkZeroOffsets_btn->Name = "ReadWorkZeroOffsets_btn"; ReadWorkZeroOffsets_btn->Text = "READ WorkZero OFFSETS"; ReadWorkZeroOffsets_btn->Tag = "Dynamic"; ReadWorkZeroOffsets_btn->SetBounds(275, 120, 175, 20);
+    Label^ WorkZeroOffset_no_lbl = gcnew Label(); WorkZeroOffset_no_lbl->Name = "WorkZeroOffset_no_lbl";  WorkZeroOffset_no_lbl->Tag = "Dynamic"; WorkZeroOffset_no_lbl->SetBounds(450, 120, 150, 20);
+    ReadWorkZeroOffsets_btn->Click += gcnew EventHandler(this, &MainForm::ReadWorkZeroOffsets_btn_Click);
+    Label^ WorkZeroOffsetX_lbl = gcnew Label(); WorkZeroOffsetX_lbl->Name = "WorkZeroOffsetX_lbl"; WorkZeroOffsetX_lbl->Text = "X:"; WorkZeroOffsetX_lbl->Tag = "Dynamic"; WorkZeroOffsetX_lbl->SetBounds(750, 100, 20, 20);
+    Label^ WorkZeroOffsetY_lbl = gcnew Label(); WorkZeroOffsetY_lbl->Name = "WorkZeroOffsetY_lbl"; WorkZeroOffsetY_lbl->Text = "Y:"; WorkZeroOffsetY_lbl->Tag = "Dynamic"; WorkZeroOffsetY_lbl->SetBounds(750, 130, 20, 20);
+    Label^ WorkZeroOffsetZ_lbl = gcnew Label(); WorkZeroOffsetZ_lbl->Name = "WorkZeroOffsetZ_lbl"; WorkZeroOffsetZ_lbl->Text = "Z:"; WorkZeroOffsetZ_lbl->Tag = "Dynamic"; WorkZeroOffsetZ_lbl->SetBounds(750, 160, 20, 20);
+    
+    TextBox^ WorkZeroOffsetX_tb = gcnew TextBox(); WorkZeroOffsetX_tb->Name = "WorkZeroOffsetX_tb"; WorkZeroOffsetX_tb->Enabled = false; WorkZeroOffsetX_tb->Tag = "Dynamic"; WorkZeroOffsetX_tb->SetBounds(850, 100, 75, 20); WorkZeroOffsetX_tb->TabIndex = 3;
+    TextBox^ WorkZeroOffsetY_tb = gcnew TextBox(); WorkZeroOffsetY_tb->Name = "WorkZeroOffsetY_tb"; WorkZeroOffsetY_tb->Enabled = false; WorkZeroOffsetY_tb->Tag = "Dynamic"; WorkZeroOffsetY_tb->SetBounds(850, 130, 75, 20); WorkZeroOffsetY_tb->TabIndex = 4;
+    TextBox^ WorkZeroOffsetZ_tb = gcnew TextBox(); WorkZeroOffsetZ_tb->Name = "WorkZeroOffsetZ_tb"; WorkZeroOffsetZ_tb->Enabled = false; WorkZeroOffsetZ_tb->Tag = "Dynamic"; WorkZeroOffsetZ_tb->SetBounds(850, 160, 75, 20); WorkZeroOffsetZ_tb->TabIndex = 5;
+    
+
+    Button^ SetWorkZeroOffset_btn = gcnew Button();
+    SetWorkZeroOffset_btn->Name = "SetWorkZeroOffset_btn"; SetWorkZeroOffset_btn->Text = "SET WorkZero OFFSET"; SetWorkZeroOffset_btn->Tag = "Dynamic"; SetWorkZeroOffset_btn->SetBounds(970, 150, 150, 20); SetWorkZeroOffset_btn->Enabled = false;
+    SetWorkZeroOffset_btn->Click += gcnew EventHandler(this, &MainForm::SetWorkZeroOffsets_btn_Click);
+
+    DataGridView^ WorkZeroOffsets_dgv = gcnew DataGridView(); WorkZeroOffsets_dgv->TabIndex = 2;
+    WorkZeroOffsets_dgv->Name = "WorkZeroOffsets_dgv";
+    WorkZeroOffsets_dgv->Tag = "Dynamic";
+    WorkZeroOffsets_dgv->SetBounds(50, 230, 600, 800);
+    WorkZeroOffsets_dgv->Columns->Add("WorkZeroOffset_No_col", "WorkZero Offset No");
+    WorkZeroOffsets_dgv->Columns["WorkZeroOffset_No_col"]->Width = 120;
+    WorkZeroOffsets_dgv->Columns->Add("WorkZeroOffset[X]_col", "WorkZero Offset[X]");
+    WorkZeroOffsets_dgv->Columns["WorkZeroOffset[X]_col"]->Width = 120;
+    WorkZeroOffsets_dgv->Columns["WorkZeroOffset[X]_col"]->DefaultCellStyle->Format = "N3";
+    WorkZeroOffsets_dgv->Columns->Add("WorkZeroOffset[Y]_col", "WorkZero Offset[Y]");
+    WorkZeroOffsets_dgv->Columns["WorkZeroOffset[Y]_col"]->Width = 120;
+    WorkZeroOffsets_dgv->Columns["WorkZeroOffset[Y]_col"]->DefaultCellStyle->Format = "N3";
+    WorkZeroOffsets_dgv->Columns->Add("WorkZeroOffset[Z]_col", "WorkZero Offset[Z]");
+    WorkZeroOffsets_dgv->Columns["WorkZeroOffset[Z]_col"]->Width = 120;
+    WorkZeroOffsets_dgv->Columns["WorkZeroOffset[Z]_col"]->DefaultCellStyle->Format = "N3";
+    
+    //WorkZeroOffsets_dgv->SelectionChanged += gcnew EventHandler(this, &MainForm::WorkZeroOffsets_dgv_SelectionChanged);
+    Controls->Add(InfoLabel_lbl);
+    Controls->Add(FromWorkZeroOffset_lbl);
+    Controls->Add(FromWorkZeroOffset_tb);
+    Controls->Add(ToWorkZeroOffset_lbl);
+    Controls->Add(ToWorkZeroOffset_tb);
+    Controls->Add(ReadWorkZeroOffsets_btn);
+    Controls->Add(WorkZeroOffset_no_lbl);
+    Controls->Add(WorkZeroOffsetX_lbl);
+    Controls->Add(WorkZeroOffsetY_lbl);
+    Controls->Add(WorkZeroOffsetZ_lbl);
+    Controls->Add(WorkZeroOffsetX_tb);
+    Controls->Add(WorkZeroOffsetY_tb);
+    Controls->Add(WorkZeroOffsetZ_tb);
+    Controls->Add(WorkZeroOffsets_dgv);
+    Controls->Add(SetWorkZeroOffset_btn);
+
+   short WorkZeroOffsets = 0;
+   short ret = cnc_rdzofsinfo(FHndl, &WorkZeroOffsets); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdzofsinfo: " + ret.ToString()); return; }
+   FromWorkZeroOffset_tb->Text = "0";
+   ToWorkZeroOffset_tb->Text = WorkZeroOffsets.ToString();
+}
+       private: System::Void ReadWorkZeroOffsets_btn_Click(System::Object^ sender, System::EventArgs^ e)
+       {
+           DataGridView^ WorkZeroOffsets_dgv = (DataGridView^)Controls["WorkZeroOffsets_dgv"];
+           FocasReadWorkZeroOffsets(this);
+           WorkZeroOffsets_dgv->SelectionChanged += gcnew EventHandler(this, &MainForm::WorkZeroOffsets_dgv_SelectionChanged);
+       }
+  private: System::Void SetWorkZeroOffsets_btn_Click(System::Object^ sender, System::EventArgs^ e)
+  {
+      FocasWriteWorkZeroOffset(this);
+  }
+  private:System::Void WorkZeroOffsets_dgv_SelectionChanged(Object^ sender, EventArgs^ e)
+  {DataGridView^ WorkZeroOffsets_dgv = (DataGridView^)Controls["WorkZeroOffsets_dgv"];
+   TextBox^ WorkZeroOffsetX_tb = (TextBox^)Controls["WorkZeroOffsetX_tb"];
+   TextBox^ WorkZeroOffsetY_tb = (TextBox^)Controls["WorkZeroOffsetY_tb"];
+   TextBox^ WorkZeroOffsetZ_tb = (TextBox^)Controls["WorkZeroOffsetZ_tb"];
+   Label^ WorkZeroOffset_no_lbl = (Label^)Controls["WorkZeroOffset_no_lbl"];
+   Button^ SetWorkZeroOffset_btn = (Button^)Controls["SetWorkZeroOffset_btn"];
+   Controls["SetWorkZeroOffset_btn"]->Enabled = true;
+   //////////////////////////////////////////////////
+   short WorkZeroOffsetNo = 0;
+   short WorkZeroOffsetType = 0;
+   int SelRows = WorkZeroOffsets_dgv->SelectedRows->Count;
+   int SelCells = WorkZeroOffsets_dgv->SelectedCells->Count;
+   if (SelRows == 0 && SelCells > 0) WorkZeroOffsets_dgv->SelectedCells[0]->OwningRow->Selected = true;
+   if (SelRows > 1) { MessageBox::Show("Select Only one WorkZeroOffset"); return; }
+   int CurrRowindex = WorkZeroOffsets_dgv->CurrentRow->Index;
+   WorkZeroOffsetNo = short::Parse(WorkZeroOffsets_dgv->CurrentRow->Cells[0]->Value->ToString());
+   //WorkZeroOffsetType = short::Parse(WorkZeroOffsets_dgv->CurrentRow->Cells[2]->Value->ToString());
+   WorkZeroOffsetX_tb->Enabled = true; WorkZeroOffsetY_tb->Enabled = true; WorkZeroOffsetZ_tb->Enabled = true;
+   WorkZeroOffsetX_tb->Text = Convert::ToSingle(WorkZeroOffsets_dgv->CurrentRow->Cells[1]->Value).ToString("N3");
+   WorkZeroOffsetY_tb->Text = Convert::ToSingle(WorkZeroOffsets_dgv->CurrentRow->Cells[2]->Value).ToString("N3");
+   WorkZeroOffsetZ_tb->Text = Convert::ToSingle(WorkZeroOffsets_dgv->CurrentRow->Cells[3]->Value).ToString("N3");
+   
+   WorkZeroOffset_no_lbl->Text = "WorkZeroOffset No: " + WorkZeroOffsetNo.ToString();
   }
 }; // end of class MainForm
 } // end of namespace FanucMillTools

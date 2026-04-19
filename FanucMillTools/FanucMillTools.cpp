@@ -819,4 +819,131 @@ short FocasReadNumToolOffsets(Form^ MainFrm,short &ToolOffsets)
     //ToToolOffset_tb->Update();
     return ret;
 }
+short FocasReadWorkZeroOffsets(Form^ MainFrm)
+{
+    short ret = 0;
+    DataGridView^ WorkZeroOffsets_dgv = (DataGridView^)MainFrm->Controls["WorkZeroOffsets_dgv"];
+    //Label^ FromToolOffset_lbl = (Label^)MainFrm->Controls["FromToolOffset_lbl"];
+    TextBox^ FromWorkZeroOffset_tb = (TextBox^)MainFrm->Controls["FromWorkZeroOffset_tb"];
+    //Label^ ToToolOffset_lbl = (Label^)MainFrm->Controls["ToToolOffset_lbl"];
+    TextBox^ ToWorkZeroOffset_tb = (TextBox^)MainFrm->Controls["ToWorkZeroOffset_tb"];
+    Label^ InfoLabel_lbl = (Label^)MainFrm->Controls["InfoLabel_lbl"];
+    Label^ WorkZeroOffset_no_lbl = (Label^)MainFrm->Controls["WorkZeroOffset_no_lbl"];
+    short FirstWorkZeroOffset = short::Parse(FromWorkZeroOffset_tb->Text);
+    short LastWorkZeroOffset = short::Parse(ToWorkZeroOffset_tb->Text);
+    WorkZeroOffsets_dgv->Rows->Clear();
+    InfoLabel_lbl->Visible = true;
+    InfoLabel_lbl->Text = "READING WORK ZERO OFFSETS FROM CNC";
+    InfoLabel_lbl->BackColor = Color::Orange;
+    InfoLabel_lbl->Update();
+    //short WorkZeroOffsets = 0;
+    //short ToolOffMemType = 0;
+    //String^ sToolOffMemType = "";
+    IODBZOFS WorkZeroOffset;
+    IODBPSD Param;
+    double ToolOffsetUnit = 0;
+    ret = cnc_rdparam(FHndl, 1013, ALL_AXES, 4 + MAX_AXIS, &Param); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdparam (Param 1013): " + ret.ToString()); return ret; }
+    switch (Param.u.cdata)
+    {
+    case 0:
+        ToolOffsetUnit = 0.001;
+        break;
+    case 1:
+        ToolOffsetUnit = 0.01;
+        break;
+    case 2:
+        ToolOffsetUnit = 0.0001;
+        break;
+    case 4:
+        ToolOffsetUnit = 0.00001;
+        break;
+    case 8:
+        ToolOffsetUnit = 0.000001;
+        break;
+    }
+    //ToolOffsets = ToolOffsInfo.use_no;
+    
+    for (int i = FirstWorkZeroOffset; i < LastWorkZeroOffset; i++)
+    {
+        ret = cnc_rdzofs(FHndl, i, -1, 4+4*MAX_AXIS, &WorkZeroOffset); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdzofs: " + ret.ToString() + " Work Zero Offset No: " + i.ToString()); return ret; }
+        
+        WorkZeroOffsets_dgv->Rows->Add(WorkZeroOffset.datano, WorkZeroOffset.data[0] * ToolOffsetUnit, WorkZeroOffset.data[1] * ToolOffsetUnit, WorkZeroOffset.data[2] * ToolOffsetUnit);
+        WorkZeroOffset_no_lbl->Text = "Work Zero Offset No: " + i.ToString();
+        WorkZeroOffset_no_lbl->Update();
+    }
+    InfoLabel_lbl->BackColor = Color::Transparent;
+    InfoLabel_lbl->Visible = false;
+    
+    return ret;
+}
+short FocasWriteWorkZeroOffset(Form^ MainFrm)
+{
+    //cnc_wrtofsr //Write WorkZero offset value(area specified)
+    DataGridView^ WorkZeroOffsets_dgv = (DataGridView^)MainFrm->Controls["WorkZeroOffsets_dgv"];
+    TextBox^ WorkZeroOffsetX_tb = (TextBox^)MainFrm->Controls["WorkZeroOffsetX_tb"];
+    TextBox^ WorkZeroOffsetY_tb = (TextBox^)MainFrm->Controls["WorkZeroOffsetY_tb"];
+    TextBox^ WorkZeroOffsetZ_tb = (TextBox^)MainFrm->Controls["WorkZeroOffsetZ_tb"];
+    Label^ InfoLabel_lbl = (Label^)MainFrm->Controls["InfoLabel_lbl"];
+    InfoLabel_lbl->Visible = true;
+    InfoLabel_lbl->BackColor = Color::Orange;
+    InfoLabel_lbl->Text = "WRITING WorkZero OFFSET TO CNC";
+    InfoLabel_lbl->Update();
+    int SelRows = WorkZeroOffsets_dgv->SelectedRows->Count;
+    int SelCells = WorkZeroOffsets_dgv->SelectedCells->Count;
+
+    if (SelRows == 0 && SelCells > 0) WorkZeroOffsets_dgv->SelectedCells[0]->OwningRow->Selected = true;
+    if (SelRows != 1) { MessageBox::Show("Select only one WorkZeroOffset"); return 1; }
+    int CurrRowindex = WorkZeroOffsets_dgv->CurrentRow->Index;
+    short WorkZeroOffsetNo = short::Parse(WorkZeroOffsets_dgv->CurrentRow->Cells[0]->Value->ToString());
+    IODBPSD Param;
+    IODBZOFS WorkZeroOffset;
+    //float WorkZeroOffsetUnit = 0;
+    short DecimalsNum = 0;
+    short ret = cnc_rdparam(FHndl, 1013, ALL_AXES, 4 + MAX_AXIS, &Param); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdparam (Param 1013): " + ret.ToString()); return ret; }
+    switch (Param.u.cdata)
+    {
+    case 0:
+        //WorkZeroOffsetUnit = 0.001;
+        DecimalsNum = 3;
+        break;
+    case 1:
+        //WorkZeroOffsetUnit = 0.01;
+        DecimalsNum = 2;
+        break;
+    case 2:
+        //WorkZeroOffsetUnit = 0.0001;
+        DecimalsNum = 4;
+        break;
+    case 4:
+        //WorkZeroOffsetUnit = 0.00001;
+        DecimalsNum = 5;
+        break;
+    case 8:
+        //WorkZeroOffsetUnit = 0.000001;
+        DecimalsNum = 6;
+        break;
+    }
+
+    if ((WorkZeroOffsetX_tb->Text->Length - WorkZeroOffsetX_tb->Text->IndexOf('.') - 1) != DecimalsNum) { MessageBox::Show("ENTER " + DecimalsNum + " DECIMALS"); ret = 1; goto finish; }
+    if ((WorkZeroOffsetY_tb->Text->Length - WorkZeroOffsetY_tb->Text->IndexOf('.') - 1) != DecimalsNum) { MessageBox::Show("ENTER " + DecimalsNum + " DECIMALS"); ret = 1; goto finish; }
+    if ((WorkZeroOffsetZ_tb->Text->Length - WorkZeroOffsetZ_tb->Text->IndexOf('.') - 1) != DecimalsNum) { MessageBox::Show("ENTER " + DecimalsNum + " DECIMALS"); ret = 1; goto finish; }
+    WorkZeroOffset.datano = WorkZeroOffsetNo;
+    WorkZeroOffset.type = -1;
+    WorkZeroOffset.data[0] = Convert::ToInt32(Convert::ToSingle(WorkZeroOffsetX_tb->Text)*Math::Pow(10,DecimalsNum));
+    WorkZeroOffset.data[1] = Convert::ToInt32(Convert::ToSingle(WorkZeroOffsetY_tb->Text) * Math::Pow(10, DecimalsNum));
+    WorkZeroOffset.data[2] = Convert::ToInt32(Convert::ToSingle(WorkZeroOffsetZ_tb->Text) * Math::Pow(10, DecimalsNum));
+    
+    ret = cnc_wrzofs(FHndl,4+4*MAX_AXIS,&WorkZeroOffset); if (ret != EW_OK) goto finish; // Write WorkZero Offset value
+    InfoLabel_lbl->BackColor = Color::Transparent;
+    InfoLabel_lbl->Visible = false;
+    MessageBox::Show("UPDATED WorkZero OFFSET IN CNC");
+finish:
+    if (ret != EW_OK)
+    {
+        InfoLabel_lbl->BackColor = Color::Transparent;
+        InfoLabel_lbl->Visible = false;
+        MessageBox::Show("ERROR RETURNED BY cnc_wrzofs: " + ret.ToString());
+    }
+    return ret;
+}
 }

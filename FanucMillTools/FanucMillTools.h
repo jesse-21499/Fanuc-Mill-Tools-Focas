@@ -21,5 +21,7 @@ namespace FanucMillTools
 	short FocasReadCNCInfo(Form^ MainFrm);
 	short FocasReadToolOffsets(Form^ MainFrm);
 	short FocasWriteToolOffset(Form^ MainFrm);
+	short FocasReadWorkZeroOffsets(Form^ MainFrm);
+	short FocasWriteWorkZeroOffset(Form^ MainFrm);
 	
 }
