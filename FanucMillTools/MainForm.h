@@ -65,7 +65,13 @@ namespace FanucMillTools {
   private: System::Windows::Forms::Label^ CncInfo_lbl;
   private: ToolStripMenuItem^ toolOffsetsToolStripMenuItem;
   private: System::Windows::Forms::ToolStripMenuItem^ workZeroOffsetsToolStripMenuItem;
-
+  private: System::Windows::Forms::ToolStripMenuItem^ axisSpindleToolStripMenuItem;
+  private: System::Windows::Forms::ToolStripMenuItem^ downloadNCToolStripMenuItem;
+  private: System::Windows::Forms::ToolStripMenuItem^ downloadDNCToolStripMenuItem;
+  private: System::Windows::Forms::ToolStripMenuItem^ uploadNCToolStripMenuItem;
+  private: System::Windows::Forms::ToolStripMenuItem^ uploadDNCToolStripMenuItem;
+  private: System::Windows::Forms::ToolStripMenuItem^ verifyNCToolStripMenuItem;
+  private: StreamReader^ ZSurfInspectStreamReader;
 
 
   protected:
@@ -89,6 +95,7 @@ namespace FanucMillTools {
         this->nCDataToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->readParameterToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->toolOffsetsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->workZeroOffsetsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->testToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->CNC_IP_lbl = (gcnew System::Windows::Forms::Label());
         this->CNC_IP_tb = (gcnew System::Windows::Forms::TextBox());
@@ -97,7 +104,12 @@ namespace FanucMillTools {
         this->FocasHndl_lbl = (gcnew System::Windows::Forms::Label());
         this->FocasHndl_tb = (gcnew System::Windows::Forms::TextBox());
         this->CncInfo_lbl = (gcnew System::Windows::Forms::Label());
-        this->workZeroOffsetsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->axisSpindleToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->downloadNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->downloadDNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->uploadNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->uploadDNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->verifyNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->menuStrip1->SuspendLayout();
         this->SuspendLayout();
         // 
@@ -112,9 +124,9 @@ namespace FanucMillTools {
         // 
         // fanucToolStripMenuItem
         // 
-        this->fanucToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
-            this->nCDataToolStripMenuItem,
-                this->testToolStripMenuItem
+        this->fanucToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
+            this->axisSpindleToolStripMenuItem,
+                this->testToolStripMenuItem, this->nCDataToolStripMenuItem
         });
         this->fanucToolStripMenuItem->Name = L"fanucToolStripMenuItem";
         this->fanucToolStripMenuItem->Size = System::Drawing::Size(51, 20);
@@ -133,21 +145,33 @@ namespace FanucMillTools {
         // readParameterToolStripMenuItem
         // 
         this->readParameterToolStripMenuItem->Name = L"readParameterToolStripMenuItem";
-        this->readParameterToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->readParameterToolStripMenuItem->Size = System::Drawing::Size(175, 22);
         this->readParameterToolStripMenuItem->Text = L"Get-Set Parameters";
         this->readParameterToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::readParameterToolStripMenuItem_Click);
         // 
         // toolOffsetsToolStripMenuItem
         // 
         this->toolOffsetsToolStripMenuItem->Name = L"toolOffsetsToolStripMenuItem";
-        this->toolOffsetsToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->toolOffsetsToolStripMenuItem->Size = System::Drawing::Size(175, 22);
         this->toolOffsetsToolStripMenuItem->Text = L"Tool Offsets";
         this->toolOffsetsToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::toolOffsetsToolStripMenuItem_Click);
         // 
+        // workZeroOffsetsToolStripMenuItem
+        // 
+        this->workZeroOffsetsToolStripMenuItem->Name = L"workZeroOffsetsToolStripMenuItem";
+        this->workZeroOffsetsToolStripMenuItem->Size = System::Drawing::Size(175, 22);
+        this->workZeroOffsetsToolStripMenuItem->Text = L"Work Zero Offsets";
+        this->workZeroOffsetsToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::workZeroOffsetsToolStripMenuItem_Click);
+        // 
         // testToolStripMenuItem
         // 
+        this->testToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(5) {
+            this->downloadNCToolStripMenuItem,
+                this->downloadDNCToolStripMenuItem, this->uploadNCToolStripMenuItem, this->uploadDNCToolStripMenuItem, this->verifyNCToolStripMenuItem
+        });
         this->testToolStripMenuItem->Name = L"testToolStripMenuItem";
         this->testToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->testToolStripMenuItem->Text = L"NCProgram";
         // 
         // CNC_IP_lbl
         // 
@@ -210,17 +234,48 @@ namespace FanucMillTools {
         this->CncInfo_lbl->Size = System::Drawing::Size(0, 13);
         this->CncInfo_lbl->TabIndex = 11;
         // 
-        // workZeroOffsetsToolStripMenuItem
+        // axisSpindleToolStripMenuItem
         // 
-        this->workZeroOffsetsToolStripMenuItem->Name = L"workZeroOffsetsToolStripMenuItem";
-        this->workZeroOffsetsToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-        this->workZeroOffsetsToolStripMenuItem->Text = L"Work Zero Offsets";
-        this->workZeroOffsetsToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::workZeroOffsetsToolStripMenuItem_Click);
+        this->axisSpindleToolStripMenuItem->Name = L"axisSpindleToolStripMenuItem";
+        this->axisSpindleToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->axisSpindleToolStripMenuItem->Text = L"Axis/Spindle";
+        // 
+        // downloadNCToolStripMenuItem
+        // 
+        this->downloadNCToolStripMenuItem->Name = L"downloadNCToolStripMenuItem";
+        this->downloadNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->downloadNCToolStripMenuItem->Text = L"Download NC";
+        this->downloadNCToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::downloadNCToolStripMenuItem_Click);
+        // 
+        // downloadDNCToolStripMenuItem
+        // 
+        this->downloadDNCToolStripMenuItem->Name = L"downloadDNCToolStripMenuItem";
+        this->downloadDNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->downloadDNCToolStripMenuItem->Text = L"Download DNC";
+        // 
+        // uploadNCToolStripMenuItem
+        // 
+        this->uploadNCToolStripMenuItem->Name = L"uploadNCToolStripMenuItem";
+        this->uploadNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->uploadNCToolStripMenuItem->Text = L"Upload NC";
+        // 
+        // uploadDNCToolStripMenuItem
+        // 
+        this->uploadDNCToolStripMenuItem->Name = L"uploadDNCToolStripMenuItem";
+        this->uploadDNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->uploadDNCToolStripMenuItem->Text = L"Upload DNC";
+        // 
+        // verifyNCToolStripMenuItem
+        // 
+        this->verifyNCToolStripMenuItem->Name = L"verifyNCToolStripMenuItem";
+        this->verifyNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->verifyNCToolStripMenuItem->Text = L"Verify NC";
         // 
         // MainForm
         // 
         this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
         this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+        this->BackColor = System::Drawing::SystemColors::Control;
         this->ClientSize = System::Drawing::Size(1305, 681);
         this->Controls->Add(this->CncInfo_lbl);
         this->Controls->Add(this->FocasHndl_tb);
@@ -683,6 +738,63 @@ private: System::Void workZeroOffsetsToolStripMenuItem_Click(System::Object^ sen
    WorkZeroOffsetZ_tb->Text = Convert::ToSingle(WorkZeroOffsets_dgv->CurrentRow->Cells[3]->Value).ToString("N3");
    
    WorkZeroOffset_no_lbl->Text = "WorkZeroOffset No: " + WorkZeroOffsetNo.ToString();
+  }
+private: System::Void downloadNCToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e)
+{
+    List <Control^> DynamicControls;
+    for each (Control^ ctrl in this->Controls)
+    {
+        if (ctrl->Tag == "Dynamic")DynamicControls.Add(ctrl);
+
+    }
+    for each (Control^ ctrl in DynamicControls)
+    {
+        Controls->Remove(ctrl);
+    }
+    
+    Button^ DownloadNCFile_btn = gcnew Button(); DownloadNCFile_btn->Name = "DownloadNCFile_btn"; DownloadNCFile_btn->Text = "DOWNLOAD NC FILE"; DownloadNCFile_btn->Tag = "Dynamic"; DownloadNCFile_btn->SetBounds(250, 120, 125, 20);
+    Button^ ZSurfInspectFile_btn = gcnew Button(); ZSurfInspectFile_btn->Name = "ZSurfInspectFile_btn"; ZSurfInspectFile_btn->Text = "OPEN SURFACE Z INSPECTION FILE"; ZSurfInspectFile_btn->Tag = "Dynamic"; ZSurfInspectFile_btn->SetBounds(250, 150, 220, 20);
+    CheckBox^ ZSurfInspectFile_chkbox = gcnew CheckBox(); ZSurfInspectFile_chkbox->Name = "ZSurfInspectFile_chkbox"; ZSurfInspectFile_chkbox->Tag = "Dynamic"; ZSurfInspectFile_chkbox->Text = "CORRECT Z FLATNESS DEFECTS"; ZSurfInspectFile_chkbox->SetBounds(500, 150, 200, 20);
+    DownloadNCFile_btn->Click += gcnew EventHandler(this, &MainForm::DownloadNCFile_btn_Click);
+    ZSurfInspectFile_btn->Click += gcnew EventHandler(this, &MainForm::ZSurfInspectFile_btn_Click);
+    Controls->Add(DownloadNCFile_btn);
+    Controls->Add(ZSurfInspectFile_btn);
+    Controls->Add(ZSurfInspectFile_chkbox);
+}
+        private: System::Void DownloadNCFile_btn_Click(System::Object^ sender, System::EventArgs^ e)
+        {
+            StreamReader^ NCFileStreamReader;
+            
+            OpenFileDialog^ DownloadNCFileDlg = gcnew OpenFileDialog();
+            DownloadNCFileDlg->InitialDirectory = "C:\\TEMP\\";
+            DownloadNCFileDlg->Filter= "NC Files (*.nc)|*.nc|All files (*.*)|*.*";
+            DownloadNCFileDlg->FilterIndex = 1;
+            DownloadNCFileDlg->RestoreDirectory = true;
+            if (DownloadNCFileDlg->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+            {
+                NCFileStreamReader = gcnew StreamReader(DownloadNCFileDlg->FileName);   
+            }
+            
+
+            FocasDownloadNCFile(this,NCFileStreamReader, ZSurfInspectStreamReader);
+            NCFileStreamReader->Close();
+            ZSurfInspectStreamReader->Close();
+        }
+  private: System::Void ZSurfInspectFile_btn_Click(System::Object^ sender, System::EventArgs^ e)
+  {
+      //StreamReader^ ZSurfInspectStreamReader;
+      OpenFileDialog^ ZSurfInspectFileDlg = gcnew OpenFileDialog();
+      ZSurfInspectFileDlg->InitialDirectory = "C:\\TEMP\\";
+      ZSurfInspectFileDlg->Filter = "NC Files (*.txt)|*.txt|All files (*.*)|*.*";
+      ZSurfInspectFileDlg->FilterIndex = 1;
+      ZSurfInspectFileDlg->RestoreDirectory = true;
+      if (ZSurfInspectFileDlg->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+      {
+          ZSurfInspectStreamReader = gcnew StreamReader(ZSurfInspectFileDlg->FileName);
+          
+      }
+      
+      
   }
 }; // end of class MainForm
 } // end of namespace FanucMillTools

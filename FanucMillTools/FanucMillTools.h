@@ -5,6 +5,7 @@ namespace FanucMillTools
 {
 	using namespace System;
 	using namespace System::Windows::Forms;
+	using namespace System::IO;
 	// Windows Forms types can be used in this header file.
 	const char* CNC_IP="";
 	unsigned short CNC_Port=8193;
@@ -23,5 +24,6 @@ namespace FanucMillTools
 	short FocasWriteToolOffset(Form^ MainFrm);
 	short FocasReadWorkZeroOffsets(Form^ MainFrm);
 	short FocasWriteWorkZeroOffset(Form^ MainFrm);
+	short FocasDownloadNCFile(Form^ MainFrm,StreamReader^ NCFileStreamReader,StreamReader^ ZSurfInspectStreamReader);
 	
 }

@@ -946,4 +946,64 @@ finish:
     }
     return ret;
 }
+short FocasDownloadNCFile(Form^ MainFrm,StreamReader^ NCFileStreamReader, StreamReader^ ZSurfInspectStreamReader)
+{short ret = 0;
+bool EndOfProgram = false;
+//bool CorrectZSurfacePoints = false;
+CheckBox^ ZSurfInspectFile_chkbox = (CheckBox^)MainFrm->Controls["ZSurfInspectFile_chkbox"];
+bool CorrectZSurfacePoints = ZSurfInspectFile_chkbox->Checked;
+ msclr::interop::marshal_context ctx;
+ String^ NCFileLine;
+ String^ ZSurfInspectFileLine;
+ const char* cNCFileLine = "";
+ int ZIndex = 0;
+ int EndOfZIndex = 0;
+ float ZDeviatCoord = 0;
+ float FlatZ = 0;
+ int FlatZIndex = 0;
+ float CorrectedZ = 0;
+ int CorrectedZIndex = 0;
+ bool IsPointToCorrect = false;
+ int InspectedPointNumb = 0;
+ List<float> PointsZLevel;
+ if (CorrectZSurfacePoints)
+ {
+  while (!ZSurfInspectStreamReader->EndOfStream)
+  {ZSurfInspectFileLine=ZSurfInspectStreamReader->ReadLine();
+   ZIndex = ZSurfInspectFileLine->IndexOf("Z");
+   EndOfZIndex = ZSurfInspectFileLine->IndexOf("(");
+   ZDeviatCoord = Convert::ToSingle(ZSurfInspectFileLine->Substring(ZIndex+1, EndOfZIndex - ZIndex - 1));
+   PointsZLevel.Add(ZDeviatCoord);
+  }
+ }
+
+ long NCLineLength = 1;
+ ret = cnc_dwnstart3(FHndl, 0);
+ ret = cnc_download3(FHndl, &NCLineLength, "\n;");
+ while (!NCFileStreamReader->EndOfStream)
+ {NCFileLine = NCFileStreamReader->ReadLine();
+  if (NCFileLine->IndexOf("M30") != -1 || NCFileLine->IndexOf("M02") != -1) EndOfProgram = true;
+  if (NCFileLine->IndexOf("%")!=-1 && EndOfProgram==false) continue;
+  if (!(NCFileLine->IndexOf("%") != -1 && EndOfProgram == true)) NCFileLine += "\n";
+  if (CorrectZSurfacePoints ) //Corrects flatness defects
+  {
+      IsPointToCorrect = (NCFileLine->LastIndexOf("(#") != -1 && NCFileLine->LastIndexOf(")") != -1 && NCFileLine->IndexOf("Z") != -1);
+      if (IsPointToCorrect)
+      {
+      InspectedPointNumb = Convert::ToInt32(NCFileLine->Substring(NCFileLine->LastIndexOf("(#")+2, NCFileLine->LastIndexOf(")") - NCFileLine->LastIndexOf("(")-2));
+      FlatZ = Convert::ToSingle(NCFileLine->Substring(NCFileLine->IndexOf("Z")+1, NCFileLine->IndexOf(" ", NCFileLine->IndexOf("Z") + 1) - NCFileLine->IndexOf("Z") - 1));
+      CorrectedZ = FlatZ+PointsZLevel[InspectedPointNumb];
+      NCFileLine=NCFileLine->Replace(FlatZ.ToString(), CorrectedZ.ToString());
+      }
+  }
+  NCLineLength = NCFileLine->Length;
+  cNCFileLine = ctx.marshal_as<const char*>(NCFileLine);
+  ret=cnc_download3(FHndl, &NCLineLength,(char*) cNCFileLine);
+
+ }
+ 
+ret = cnc_dwnend3(FHndl);
+MessageBox::Show("NC FILE REGISTERED IN CNC");
+return ret;
+}
 }
