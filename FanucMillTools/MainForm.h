@@ -11,6 +11,7 @@ namespace FanucMillTools {
   using namespace System::ComponentModel;
   using namespace System::Collections;
   using namespace System::Windows::Forms;
+  using namespace System::Diagnostics;
   //using namespace System::Reflection::Emit;
   using namespace System::Data;
   using namespace System::Data::SqlClient;
@@ -72,7 +73,10 @@ namespace FanucMillTools {
   private: System::Windows::Forms::ToolStripMenuItem^ uploadDNCToolStripMenuItem;
   private: System::Windows::Forms::ToolStripMenuItem^ verifyNCToolStripMenuItem;
   private: StreamReader^ ZSurfInspectStreamReader;
-
+  private: System::Windows::Forms::Timer^ MachinePos_timer;
+  private: System::ComponentModel::IContainer^ components;
+  private: System::Windows::Forms::ToolStripMenuItem^ getMachinePositionToolStripMenuItem;
+  private: System::Diagnostics::Stopwatch^ stopwatch;
 
   protected:
 
@@ -81,7 +85,7 @@ namespace FanucMillTools {
     /// Required designer variable.
    
     /// </summary>
-    System::ComponentModel::Container^ components;
+
 
 #pragma region Windows Form Designer generated code
     /// <summary>
@@ -90,13 +94,20 @@ namespace FanucMillTools {
     /// </summary>
     void InitializeComponent(void)
     {
+        this->components = (gcnew System::ComponentModel::Container());
         this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
         this->fanucToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->axisSpindleToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->testToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->downloadNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->downloadDNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->uploadNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->uploadDNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->verifyNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->nCDataToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->readParameterToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->toolOffsetsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->workZeroOffsetsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-        this->testToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->CNC_IP_lbl = (gcnew System::Windows::Forms::Label());
         this->CNC_IP_tb = (gcnew System::Windows::Forms::TextBox());
         this->Connect_btn = (gcnew System::Windows::Forms::Button());
@@ -104,12 +115,8 @@ namespace FanucMillTools {
         this->FocasHndl_lbl = (gcnew System::Windows::Forms::Label());
         this->FocasHndl_tb = (gcnew System::Windows::Forms::TextBox());
         this->CncInfo_lbl = (gcnew System::Windows::Forms::Label());
-        this->axisSpindleToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-        this->downloadNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-        this->downloadDNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-        this->uploadNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-        this->uploadDNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-        this->verifyNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->MachinePos_timer = (gcnew System::Windows::Forms::Timer(this->components));
+        this->getMachinePositionToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->menuStrip1->SuspendLayout();
         this->SuspendLayout();
         // 
@@ -132,6 +139,55 @@ namespace FanucMillTools {
         this->fanucToolStripMenuItem->Size = System::Drawing::Size(51, 20);
         this->fanucToolStripMenuItem->Text = L"Fanuc";
         // 
+        // axisSpindleToolStripMenuItem
+        // 
+        this->axisSpindleToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->getMachinePositionToolStripMenuItem });
+        this->axisSpindleToolStripMenuItem->Name = L"axisSpindleToolStripMenuItem";
+        this->axisSpindleToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->axisSpindleToolStripMenuItem->Text = L"Axis/Spindle";
+        
+        // 
+        // testToolStripMenuItem
+        // 
+        this->testToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(5) {
+            this->downloadNCToolStripMenuItem,
+                this->downloadDNCToolStripMenuItem, this->uploadNCToolStripMenuItem, this->uploadDNCToolStripMenuItem, this->verifyNCToolStripMenuItem
+        });
+        this->testToolStripMenuItem->Name = L"testToolStripMenuItem";
+        this->testToolStripMenuItem->Size = System::Drawing::Size(140, 22);
+        this->testToolStripMenuItem->Text = L"NCProgram";
+        // 
+        // downloadNCToolStripMenuItem
+        // 
+        this->downloadNCToolStripMenuItem->Name = L"downloadNCToolStripMenuItem";
+        this->downloadNCToolStripMenuItem->Size = System::Drawing::Size(156, 22);
+        this->downloadNCToolStripMenuItem->Text = L"Download NC";
+        this->downloadNCToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::downloadNCToolStripMenuItem_Click);
+        // 
+        // downloadDNCToolStripMenuItem
+        // 
+        this->downloadDNCToolStripMenuItem->Name = L"downloadDNCToolStripMenuItem";
+        this->downloadDNCToolStripMenuItem->Size = System::Drawing::Size(156, 22);
+        this->downloadDNCToolStripMenuItem->Text = L"Download DNC";
+        // 
+        // uploadNCToolStripMenuItem
+        // 
+        this->uploadNCToolStripMenuItem->Name = L"uploadNCToolStripMenuItem";
+        this->uploadNCToolStripMenuItem->Size = System::Drawing::Size(156, 22);
+        this->uploadNCToolStripMenuItem->Text = L"Upload NC";
+        // 
+        // uploadDNCToolStripMenuItem
+        // 
+        this->uploadDNCToolStripMenuItem->Name = L"uploadDNCToolStripMenuItem";
+        this->uploadDNCToolStripMenuItem->Size = System::Drawing::Size(156, 22);
+        this->uploadDNCToolStripMenuItem->Text = L"Upload DNC";
+        // 
+        // verifyNCToolStripMenuItem
+        // 
+        this->verifyNCToolStripMenuItem->Name = L"verifyNCToolStripMenuItem";
+        this->verifyNCToolStripMenuItem->Size = System::Drawing::Size(156, 22);
+        this->verifyNCToolStripMenuItem->Text = L"Verify NC";
+        // 
         // nCDataToolStripMenuItem
         // 
         this->nCDataToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
@@ -139,7 +195,7 @@ namespace FanucMillTools {
                 this->toolOffsetsToolStripMenuItem, this->workZeroOffsetsToolStripMenuItem
         });
         this->nCDataToolStripMenuItem->Name = L"nCDataToolStripMenuItem";
-        this->nCDataToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->nCDataToolStripMenuItem->Size = System::Drawing::Size(140, 22);
         this->nCDataToolStripMenuItem->Text = L"NCData";
         // 
         // readParameterToolStripMenuItem
@@ -162,16 +218,6 @@ namespace FanucMillTools {
         this->workZeroOffsetsToolStripMenuItem->Size = System::Drawing::Size(175, 22);
         this->workZeroOffsetsToolStripMenuItem->Text = L"Work Zero Offsets";
         this->workZeroOffsetsToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::workZeroOffsetsToolStripMenuItem_Click);
-        // 
-        // testToolStripMenuItem
-        // 
-        this->testToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(5) {
-            this->downloadNCToolStripMenuItem,
-                this->downloadDNCToolStripMenuItem, this->uploadNCToolStripMenuItem, this->uploadDNCToolStripMenuItem, this->verifyNCToolStripMenuItem
-        });
-        this->testToolStripMenuItem->Name = L"testToolStripMenuItem";
-        this->testToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-        this->testToolStripMenuItem->Text = L"NCProgram";
         // 
         // CNC_IP_lbl
         // 
@@ -234,42 +280,16 @@ namespace FanucMillTools {
         this->CncInfo_lbl->Size = System::Drawing::Size(0, 13);
         this->CncInfo_lbl->TabIndex = 11;
         // 
-        // axisSpindleToolStripMenuItem
+        // MachinePos_timer
         // 
-        this->axisSpindleToolStripMenuItem->Name = L"axisSpindleToolStripMenuItem";
-        this->axisSpindleToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-        this->axisSpindleToolStripMenuItem->Text = L"Axis/Spindle";
+        this->MachinePos_timer->Interval = 250;
         // 
-        // downloadNCToolStripMenuItem
+        // getMachinePositionToolStripMenuItem
         // 
-        this->downloadNCToolStripMenuItem->Name = L"downloadNCToolStripMenuItem";
-        this->downloadNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-        this->downloadNCToolStripMenuItem->Text = L"Download NC";
-        this->downloadNCToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::downloadNCToolStripMenuItem_Click);
-        // 
-        // downloadDNCToolStripMenuItem
-        // 
-        this->downloadDNCToolStripMenuItem->Name = L"downloadDNCToolStripMenuItem";
-        this->downloadDNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-        this->downloadDNCToolStripMenuItem->Text = L"Download DNC";
-        // 
-        // uploadNCToolStripMenuItem
-        // 
-        this->uploadNCToolStripMenuItem->Name = L"uploadNCToolStripMenuItem";
-        this->uploadNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-        this->uploadNCToolStripMenuItem->Text = L"Upload NC";
-        // 
-        // uploadDNCToolStripMenuItem
-        // 
-        this->uploadDNCToolStripMenuItem->Name = L"uploadDNCToolStripMenuItem";
-        this->uploadDNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-        this->uploadDNCToolStripMenuItem->Text = L"Upload DNC";
-        // 
-        // verifyNCToolStripMenuItem
-        // 
-        this->verifyNCToolStripMenuItem->Name = L"verifyNCToolStripMenuItem";
-        this->verifyNCToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-        this->verifyNCToolStripMenuItem->Text = L"Verify NC";
+        this->getMachinePositionToolStripMenuItem->Name = L"getMachinePositionToolStripMenuItem";
+        this->getMachinePositionToolStripMenuItem->Size = System::Drawing::Size(187, 22);
+        this->getMachinePositionToolStripMenuItem->Text = L"Get Machine Position";
+        this->getMachinePositionToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::getMachinePositionToolStripMenuItem_Click);
         // 
         // MainForm
         // 
@@ -796,6 +816,95 @@ private: System::Void downloadNCToolStripMenuItem_Click(System::Object^ sender, 
       
       
   }
+
+  private: System::Void ReadMachinePos_btn_Click(System::Object^ sender, System::EventArgs^ e)
+  {stopwatch = Stopwatch::StartNew();
+   if (MachinePos_timer->Enabled == false)
+   {MachinePos_timer->Enabled = true;
+    Controls["ReadMachinePos_btn"]->BackColor = Color::FromArgb(0, 150, 0);
+    stopwatch->Start();
+   } 
+   else
+   {MachinePos_timer->Enabled = false;
+    Controls["ReadMachinePos_btn"]->BackColor = Color::Transparent;
+    stopwatch->Stop();
+   }
+  }
+ private:System::Void MachinePos_timer_Tick(System::Object^ sender, System::EventArgs^ e)
+ {
+     FocasMonitorMachinePos(this,stopwatch);
+ }
+private: System::Void getMachinePositionToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
+{
+    List <Control^> DynamicControls;
+    for each (Control ^ ctrl in this->Controls)
+    {
+        if (ctrl->Tag == "Dynamic")DynamicControls.Add(ctrl);
+
+    }
+    for each (Control ^ ctrl in DynamicControls)
+    {
+        Controls->Remove(ctrl);
+    }
+    Label^ MachineAxis_lbl = gcnew Label(); MachineAxis_lbl->Name = "MachineAxis_lbl"; MachineAxis_lbl->Text = "Machine-Axis"; MachineAxis_lbl->Tag = "Dynamic"; MachineAxis_lbl->SetBounds(50, 200, 150, 20);
+    Label^ MachineAbsPos_lbl = gcnew Label(); MachineAbsPos_lbl->Name = "MachineAbsPos_lbl"; MachineAbsPos_lbl->Text = "Absolute Position"; MachineAbsPos_lbl->Tag = "Dynamic"; MachineAbsPos_lbl->SetBounds(250, 200, 75, 20);
+    Label^ MachinePos_lbl = gcnew Label(); MachinePos_lbl->Name = "MachinePos_lbl"; MachinePos_lbl->Text = "Machine Position"; MachinePos_lbl->Tag = "Dynamic"; MachinePos_lbl->SetBounds(450, 200, 75, 20);
+    Label^ MachineRelPos_lbl = gcnew Label(); MachineRelPos_lbl->Name = "MachineRelPos_lbl"; MachineRelPos_lbl->Text = "Relative Position"; MachineRelPos_lbl->Tag = "Dynamic"; MachineRelPos_lbl->SetBounds(650, 200, 75, 20);
+    Label^ MachineDTG_lbl = gcnew Label(); MachineDTG_lbl->Name = "MachineDTG_lbl"; MachineDTG_lbl->Text = "Dist-To-Go"; MachineDTG_lbl->Tag = "Dynamic"; MachineDTG_lbl->SetBounds(850, 200, 75, 20);
+    Label^ XMachinePos_lbl = gcnew Label(); XMachinePos_lbl->Name = "XMachinePos_lbl"; XMachinePos_lbl->Tag = "Dynamic"; XMachinePos_lbl->SetBounds(50, 220, 75, 20);
+    Label^ YMachinePos_lbl = gcnew Label(); YMachinePos_lbl->Name = "YMachinePos_lbl"; YMachinePos_lbl->Tag = "Dynamic"; YMachinePos_lbl->SetBounds(50, 240, 75, 20);
+    Label^ ZMachinePos_lbl = gcnew Label(); ZMachinePos_lbl->Name = "ZMachinePos_lbl"; ZMachinePos_lbl->Tag = "Dynamic"; ZMachinePos_lbl->SetBounds(50, 260, 75, 20);
+    Label^ XAbsPos_lbl = gcnew Label(); XAbsPos_lbl->Name = "XAbsPos_lbl"; XAbsPos_lbl->Tag = "Dynamic"; XAbsPos_lbl->SetBounds(250, 220, 75, 20);
+    Label^ YAbsPos_lbl = gcnew Label(); YAbsPos_lbl->Name = "YAbsPos_lbl"; YAbsPos_lbl->Tag = "Dynamic"; YAbsPos_lbl->SetBounds(250, 240, 75, 20);
+    Label^ ZAbsPos_lbl = gcnew Label(); ZAbsPos_lbl->Name = "ZAbsPos_lbl"; ZAbsPos_lbl->Tag = "Dynamic"; ZAbsPos_lbl->SetBounds(250, 260, 75, 20);
+    Label^ XPos_lbl = gcnew Label(); XPos_lbl->Name = "XPos_lbl"; XPos_lbl->Tag = "Dynamic"; XPos_lbl->SetBounds(450, 220, 75, 20);
+    Label^ YPos_lbl = gcnew Label(); YPos_lbl->Name = "YPos_lbl"; YPos_lbl->Tag = "Dynamic"; YPos_lbl->SetBounds(450, 240, 75, 20);
+    Label^ ZPos_lbl = gcnew Label(); ZPos_lbl->Name = "ZPos_lbl"; ZPos_lbl->Tag = "Dynamic"; ZPos_lbl->SetBounds(450, 260, 75, 20);
+    Label^ XRelPos_lbl = gcnew Label(); XRelPos_lbl->Name = "XRelPos_lbl"; XRelPos_lbl->Tag = "Dynamic"; XRelPos_lbl->SetBounds(650, 220, 75, 20);
+    Label^ YRelPos_lbl = gcnew Label(); YRelPos_lbl->Name = "YRelPos_lbl"; YRelPos_lbl->Tag = "Dynamic"; YRelPos_lbl->SetBounds(650, 240, 75, 20);
+    Label^ ZRelPos_lbl = gcnew Label(); ZRelPos_lbl->Name = "ZRelPos_lbl"; ZRelPos_lbl->Tag = "Dynamic"; ZRelPos_lbl->SetBounds(650, 260, 75, 20);
+    Label^ XDTGPos_lbl = gcnew Label(); XDTGPos_lbl->Name = "XDTGPos_lbl"; XDTGPos_lbl->Tag = "Dynamic"; XDTGPos_lbl->SetBounds(850, 220, 75, 20);
+    Label^ YDTGPos_lbl = gcnew Label(); YDTGPos_lbl->Name = "YDTGPos_lbl"; YDTGPos_lbl->Tag = "Dynamic"; YDTGPos_lbl->SetBounds(850, 240, 75, 20);
+    Label^ ZDTGPos_lbl = gcnew Label(); ZDTGPos_lbl->Name = "ZDTGPos_lbl"; ZDTGPos_lbl->Tag = "Dynamic"; ZDTGPos_lbl->SetBounds(850, 260, 75, 20);
+    Label^ SpindleSpeed_lbl = gcnew Label(); SpindleSpeed_lbl->Name = "SpindleSpeed_lbl"; SpindleSpeed_lbl->Tag = "Dynamic"; SpindleSpeed_lbl->SetBounds(100, 100, 100, 20);
+    Label^ FeedRate_lbl = gcnew Label(); FeedRate_lbl->Name = "FeedRate_lbl"; FeedRate_lbl->Tag = "Dynamic"; FeedRate_lbl->SetBounds(300, 100, 100, 20);
+    Label^ CurrentTime_lbl = gcnew Label(); CurrentTime_lbl->Name = "CurrentTime_lbl"; CurrentTime_lbl->Text = DateTime::Now.ToLongTimeString(); CurrentTime_lbl->Tag = "Dynamic"; CurrentTime_lbl->SetBounds(750, 100, 50, 20);
+    Label^ EllapsedTime_lbl = gcnew Label(); EllapsedTime_lbl->Name = "EllapsedTime_lbl"; EllapsedTime_lbl->Text = "0"; EllapsedTime_lbl->Tag = "Dynamic"; EllapsedTime_lbl->SetBounds(825, 100, 50, 20);
+    Button^ ReadMachinePos_btn = gcnew Button(); ReadMachinePos_btn->Name = "ReadMachinePos_btn"; ReadMachinePos_btn->Text = "MONITOR MACHINE POSITION"; ReadMachinePos_btn->Tag = "Dynamic"; ReadMachinePos_btn->SetBounds(500, 100, 175, 20);
+    Label^ ExecProgName_lbl = gcnew Label(); ExecProgName_lbl->Name = "ExecProgName_lbl"; ExecProgName_lbl->Tag = "Dynamic"; ExecProgName_lbl->SetBounds(100, 130, 250, 20);
+    Label^ ExecProgBlock_lbl = gcnew Label(); ExecProgBlock_lbl->Name = "ExecProgBlock_lbl"; ExecProgBlock_lbl->Tag = "Dynamic"; ExecProgBlock_lbl->SetBounds(100, 160, 1000, 20);
+    ReadMachinePos_btn->Click += gcnew EventHandler(this, &MainForm::ReadMachinePos_btn_Click);
+    MachinePos_timer->Tick += gcnew EventHandler(this, &MainForm::MachinePos_timer_Tick);
+    Controls->Add(MachineAxis_lbl);
+    Controls->Add(MachineAbsPos_lbl);
+    Controls->Add(MachinePos_lbl);
+    Controls->Add(MachineRelPos_lbl);
+    Controls->Add(MachineDTG_lbl);
+    Controls->Add(XMachinePos_lbl);
+    Controls->Add(YMachinePos_lbl);
+    Controls->Add(ZMachinePos_lbl);
+    Controls->Add(XAbsPos_lbl);
+    Controls->Add(YAbsPos_lbl);
+    Controls->Add(ZAbsPos_lbl);
+    Controls->Add(XPos_lbl);
+    Controls->Add(YPos_lbl);
+    Controls->Add(ZPos_lbl);
+    Controls->Add(XRelPos_lbl);
+    Controls->Add(YRelPos_lbl);
+    Controls->Add(ZRelPos_lbl);
+    Controls->Add(XDTGPos_lbl);
+    Controls->Add(YDTGPos_lbl);
+    Controls->Add(ZDTGPos_lbl);
+    Controls->Add(SpindleSpeed_lbl);
+    Controls->Add(FeedRate_lbl);
+    Controls->Add(ReadMachinePos_btn);
+    Controls->Add(CurrentTime_lbl);
+    Controls->Add(EllapsedTime_lbl);
+    Controls->Add(ExecProgName_lbl);
+    Controls->Add(ExecProgBlock_lbl);
+    FocasReadMachinePos(this);
+
+}
 }; // end of class MainForm
 } // end of namespace FanucMillTools
 

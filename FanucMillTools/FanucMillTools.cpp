@@ -1006,4 +1006,127 @@ ret = cnc_dwnend3(FHndl);
 MessageBox::Show("NC FILE REGISTERED IN CNC");
 return ret;
 }
+short FocasReadMachinePos(Form^ MainFrm)
+{Label^ XMachinePos_lbl = (Label^)MainFrm->Controls["XMachinePos_lbl"];
+ Label^ YMachinePos_lbl = (Label^)MainFrm->Controls["YMachinePos_lbl"];
+ Label^ ZMachinePos_lbl = (Label^)MainFrm->Controls["ZMachinePos_lbl"];
+ Label^ XAbsPos_lbl = (Label^)MainFrm->Controls["XAbsPos_lbl"];
+ Label^ YAbsPos_lbl = (Label^)MainFrm->Controls["YAbsPos_lbl"];
+ Label^ ZAbsPos_lbl = (Label^)MainFrm->Controls["ZAbsPos_lbl"];
+ Label^ XPos_lbl = (Label^)MainFrm->Controls["XPos_lbl"];
+ Label^ YPos_lbl = (Label^)MainFrm->Controls["YPos_lbl"];
+ Label^ ZPos_lbl = (Label^)MainFrm->Controls["ZPos_lbl"];
+ Label^ XRelPos_lbl = (Label^)MainFrm->Controls["XRelPos_lbl"];
+ Label^ YRelPos_lbl = (Label^)MainFrm->Controls["YRelPos_lbl"];
+ Label^ ZRelPos_lbl = (Label^)MainFrm->Controls["ZRelPos_lbl"];
+ Label^ XDTGPos_lbl = (Label^)MainFrm->Controls["XDTGPos_lbl"];
+ Label^ YDTGPos_lbl = (Label^)MainFrm->Controls["YDTGPos_lbl"];
+ Label^ ZDTGPos_lbl = (Label^)MainFrm->Controls["ZDTGPos_lbl"];
+ Label^ SpindleSpeed_lbl = (Label^)MainFrm->Controls["SpindleSpeed_lbl"];
+ Label^ FeedRate_lbl = (Label^)MainFrm->Controls["FeedRate_lbl"];
+ Label^ CurrentTime_lbl = (Label^)MainFrm->Controls["CurrentTime_lbl"];
+ Label^ EllapsedTime_lbl = (Label^)MainFrm->Controls["EllapsedTime_lbl"];
+ Label^ ExecProgName_lbl = (Label^)MainFrm->Controls["ExecProgName_lbl"];
+ Label^ ExecProgBlock_lbl = (Label^)MainFrm->Controls["ExecProgBlock_lbl"];
+ //ODBEXEPRG ExecutingProgram;
+ //char ExecProgName[256];
+ ret = cnc_exeprgname2(FHndl, ExecProgName);if (ret!=EW_OK) {MessageBox::Show("Error returned by cnc_exeprgname2: " + ret.ToString()); return ret;}
+
+ NumberOfAxis = MAX_AXIS;
+ //ODBPOS MachinePos[MAX_AXIS];
+ ret = cnc_rdposition(FHndl,-1, &NumberOfAxis, MachinePos); if (ret != EW_OK) {MessageBox::Show("Error returned by cnc_rdposition: " + ret.ToString());return ret;}
+ //ODBACT ActualSpindleSpeed;
+ //ODBACT ActualFeedRate;
+ ret = cnc_acts(FHndl, &ActualSpindleSpeed);if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_acts: " + ret.ToString()); return ret;}
+ SpindleSpeed = ActualSpindleSpeed.data;
+ ret = cnc_actf(FHndl, &ActualFeedRate); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_actf: " + ret.ToString()); return ret; }
+ FeedRate = ActualFeedRate.data;
+ //IODBSGNL OutputSignalImage;
+ ret = cnc_rdopnlsgnl(FHndl,6, &OutputSignalImage);
+ xAbs = MachinePos[0].abs.data * pow(10, -MachinePos[0].abs.dec);
+ yAbs = MachinePos[1].abs.data * pow(10, -MachinePos[1].abs.dec);
+ zAbs = MachinePos[2].abs.data * pow(10, -MachinePos[2].abs.dec);
+ x = MachinePos[0].mach.data * pow(10, -MachinePos[0].mach.dec);
+ y = MachinePos[1].mach.data * pow(10, -MachinePos[1].mach.dec);
+ z = MachinePos[2].mach.data * pow(10, -MachinePos[2].mach.dec);
+ xRel = MachinePos[0].rel.data * pow(10, -MachinePos[0].rel.dec);
+ yRel = MachinePos[1].rel.data * pow(10, -MachinePos[1].rel.dec);
+ zRel = MachinePos[2].rel.data * pow(10, -MachinePos[2].rel.dec);
+ xDtg = MachinePos[0].dist.data * pow(10, -MachinePos[0].dist.dec);
+ yDtg = MachinePos[1].dist.data * pow(10, -MachinePos[1].dist.dec);
+ zDtg = MachinePos[2].dist.data * pow(10, -MachinePos[2].dist.dec);
+ if (xDtg >= 0) XMachinePos_lbl->Text = "+MX"; else XMachinePos_lbl->Text = "-MX";
+ if (yDtg >= 0) YMachinePos_lbl->Text = "+MY"; else YMachinePos_lbl->Text = "-MY";
+ if (zDtg >= 0) ZMachinePos_lbl->Text = "+MZ"; else ZMachinePos_lbl->Text = "-MZ";
+ XAbsPos_lbl->Text = xAbs.ToString();
+ YAbsPos_lbl->Text = yAbs.ToString();
+ ZAbsPos_lbl->Text = zAbs.ToString();
+ XPos_lbl->Text = x.ToString();
+ YPos_lbl->Text = y.ToString();
+ ZPos_lbl->Text = z.ToString();
+ XRelPos_lbl->Text = xRel.ToString();
+ YRelPos_lbl->Text = yRel.ToString();
+ ZRelPos_lbl->Text = zRel.ToString();
+ XDTGPos_lbl->Text = xDtg.ToString();
+ YDTGPos_lbl->Text = yDtg.ToString();
+ ZDTGPos_lbl->Text = zDtg.ToString();
+ SpindleSpeed_lbl->Text = "S "+SpindleSpeed.ToString()+ " rpm";
+ FeedRate_lbl->Text = "F " + FeedRate + " mm/min";
+ ExecProgName_lbl->Text = gcnew String(ExecProgName);
+ return ret;
+}
+short FocasMonitorMachinePos(Form^ MainFrm,Stopwatch^ stopwatch)
+{    
+    NumberOfAxis = MAX_AXIS;
+    ExecProgLinesToRead = 1;
+    ExecProgBlockLength = 512;
+    //ODBPOS MachinePos[MAX_AXIS];
+    ret = cnc_rdposition(FHndl, -1, &NumberOfAxis, MachinePos); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdposition: " + ret.ToString()); stopwatch->Stop(); return ret; }
+    //ODBACT ActualSpindleSpeed;
+    //ODBACT ActualFeedRate;
+    ret = cnc_acts(FHndl, &ActualSpindleSpeed); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_acts: " + ret.ToString()); stopwatch->Stop(); return ret; }
+    SpindleSpeed = ActualSpindleSpeed.data;
+    ret = cnc_actf(FHndl, &ActualFeedRate); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_actf: " + ret.ToString()); stopwatch->Stop(); return ret; }
+    FeedRate = ActualFeedRate.data;
+    //IODBSGNL OutputSignalImage;
+    ret = cnc_rdopnlsgnl(FHndl, 6, &OutputSignalImage); //Spindle Speed Override (Not available in Fanuc 30i-31i series)
+    xAbs = MachinePos[0].abs.data * pow(10, -MachinePos[0].abs.dec);
+    yAbs = MachinePos[1].abs.data * pow(10, -MachinePos[1].abs.dec);
+    zAbs = MachinePos[2].abs.data * pow(10, -MachinePos[2].abs.dec);
+    x = MachinePos[0].mach.data * pow(10, -MachinePos[0].mach.dec);
+    y = MachinePos[1].mach.data * pow(10, -MachinePos[1].mach.dec);
+    z = MachinePos[2].mach.data * pow(10, -MachinePos[2].mach.dec);
+    xRel = MachinePos[0].rel.data * pow(10, -MachinePos[0].rel.dec);
+    yRel = MachinePos[1].rel.data * pow(10, -MachinePos[1].rel.dec);
+    zRel = MachinePos[2].rel.data * pow(10, -MachinePos[2].rel.dec);
+    xDtg = MachinePos[0].dist.data * pow(10, -MachinePos[0].dist.dec);
+    yDtg = MachinePos[1].dist.data * pow(10, -MachinePos[1].dist.dec);
+    zDtg = MachinePos[2].dist.data * pow(10, -MachinePos[2].dist.dec);
+    if (xDtg >= 0) MainFrm->Controls["XMachinePos_lbl"]->Text = "+MX"; else MainFrm->Controls["XMachinePos_lbl"]->Text = "-MX";
+    if (yDtg >= 0) MainFrm->Controls["YMachinePos_lbl"]->Text = "+MY"; else MainFrm->Controls["YMachinePos_lbl"]->Text = "-MY";
+    if (zDtg >= 0) MainFrm->Controls["ZMachinePos_lbl"]->Text = "+MZ"; else MainFrm->Controls["ZMachinePos_lbl"]->Text = "-MZ";
+    MainFrm->Controls["XAbsPos_lbl"]->Text = xAbs.ToString();
+    MainFrm->Controls["YAbsPos_lbl"]->Text = yAbs.ToString();
+    MainFrm->Controls["ZAbsPos_lbl"]->Text = zAbs.ToString();
+    MainFrm->Controls["XPos_lbl"]->Text = x.ToString();
+    MainFrm->Controls["YPos_lbl"]->Text = y.ToString();
+    MainFrm->Controls["ZPos_lbl"]->Text = z.ToString();
+    MainFrm->Controls["XRelPos_lbl"]->Text = xRel.ToString();
+    MainFrm->Controls["YRelPos_lbl"]->Text = yRel.ToString();
+    MainFrm->Controls["ZRelPos_lbl"]->Text = zRel.ToString();
+    MainFrm->Controls["XDTGPos_lbl"]->Text = xDtg.ToString();
+    MainFrm->Controls["YDTGPos_lbl"]->Text = yDtg.ToString();
+    MainFrm->Controls["ZDTGPos_lbl"]->Text = zDtg.ToString();
+    MainFrm->Controls["SpindleSpeed_lbl"]->Text = "S " + SpindleSpeed.ToString() + " rpm";
+    MainFrm->Controls["FeedRate_lbl"]->Text = "F " + FeedRate + " mm/min";
+    MainFrm->Controls["CurrentTime_lbl"]->Text = DateTime::Now.ToLongTimeString();
+    MainFrm->Controls["EllapsedTime_lbl"]->Text = ((float)stopwatch->ElapsedMilliseconds / 1000).ToString();;
+    
+    //ret=cnc_rdexecpt(FHndl,)
+    ret=cnc_pdf_rdactpt(FHndl, ExecProgName, &ExecProgBlockNum); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_pdf_rdactpt: " + ret.ToString()); stopwatch->Stop(); return ret; }
+    ret = cnc_rdpdf_line(FHndl, ExecProgName, ExecProgBlockNum, ExecProgBlock, &ExecProgLinesToRead,&ExecProgBlockLength); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdpdf_line: " + ret.ToString());  stopwatch->Stop(); return ret; }
+    MainFrm->Controls["ExecProgBlock_lbl"]->Text = (ExecProgBlockNum +1).ToString()+ " " + gcnew String(ExecProgBlock);
+    return ret;
+
+}
 }
