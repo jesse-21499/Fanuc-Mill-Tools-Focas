@@ -1081,15 +1081,15 @@ short FocasMonitorMachinePos(Form^ MainFrm,Stopwatch^ stopwatch)
     ExecProgLinesToRead = 1;
     ExecProgBlockLength = 512;
     //ODBPOS MachinePos[MAX_AXIS];
-    ret = cnc_rdposition(FHndl, -1, &NumberOfAxis, MachinePos); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdposition: " + ret.ToString()); stopwatch->Stop(); return ret; }
+    ret = cnc_rdposition(FHndl, -1, &NumberOfAxis, MachinePos); if (ret != EW_OK) { stopwatch->Stop(); MessageBox::Show("Error returned by cnc_rdposition: " + ret.ToString()); stopwatch->Stop(); return ret; }
     //ODBACT ActualSpindleSpeed;
     //ODBACT ActualFeedRate;
-    ret = cnc_acts(FHndl, &ActualSpindleSpeed); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_acts: " + ret.ToString()); stopwatch->Stop(); return ret; }
+    ret = cnc_acts(FHndl, &ActualSpindleSpeed); if (ret != EW_OK) { stopwatch->Stop(); MessageBox::Show("Error returned by cnc_acts: " + ret.ToString()); stopwatch->Stop();  return ret; }
     SpindleSpeed = ActualSpindleSpeed.data;
-    ret = cnc_actf(FHndl, &ActualFeedRate); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_actf: " + ret.ToString()); stopwatch->Stop(); return ret; }
+    ret = cnc_actf(FHndl, &ActualFeedRate); if (ret != EW_OK) { stopwatch->Stop(); MessageBox::Show("Error returned by cnc_actf: " + ret.ToString());  stopwatch->Stop(); return ret; }
     FeedRate = ActualFeedRate.data;
     //IODBSGNL OutputSignalImage;
-    ret = cnc_rdopnlsgnl(FHndl, 6, &OutputSignalImage); //Spindle Speed Override (Not available in Fanuc 30i-31i series)
+    ret = cnc_rdopnlsgnl(FHndl, 6, &OutputSignalImage);  if (ret != EW_OK) { stopwatch->Stop(); MessageBox::Show("Error returned by cnc_rdopnlsgnl: " + ret.ToString()); stopwatch->Stop();  return ret; }//Spindle Speed Override (Not available in Fanuc 30i-31i series)
     xAbs = MachinePos[0].abs.data * pow(10, -MachinePos[0].abs.dec);
     yAbs = MachinePos[1].abs.data * pow(10, -MachinePos[1].abs.dec);
     zAbs = MachinePos[2].abs.data * pow(10, -MachinePos[2].abs.dec);
@@ -1123,8 +1123,8 @@ short FocasMonitorMachinePos(Form^ MainFrm,Stopwatch^ stopwatch)
     MainFrm->Controls["EllapsedTime_lbl"]->Text = ((float)stopwatch->ElapsedMilliseconds / 1000).ToString();;
     
     //ret=cnc_rdexecpt(FHndl,)
-    ret=cnc_pdf_rdactpt(FHndl, ExecProgName, &ExecProgBlockNum); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_pdf_rdactpt: " + ret.ToString()); stopwatch->Stop(); return ret; }
-    ret = cnc_rdpdf_line(FHndl, ExecProgName, ExecProgBlockNum, ExecProgBlock, &ExecProgLinesToRead,&ExecProgBlockLength); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdpdf_line: " + ret.ToString());  stopwatch->Stop(); return ret; }
+    ret=cnc_pdf_rdactpt(FHndl, ExecProgName, &ExecProgBlockNum); if (ret != EW_OK) { stopwatch->Stop(); MessageBox::Show("Error returned by cnc_pdf_rdactpt: " + ret.ToString()); stopwatch->Stop(); return ret; }
+    ret = cnc_rdpdf_line(FHndl, ExecProgName, ExecProgBlockNum, ExecProgBlock, &ExecProgLinesToRead,&ExecProgBlockLength); if (ret != EW_OK) { stopwatch->Stop(); MessageBox::Show("Error returned by cnc_rdpdf_line: " + ret.ToString());   stopwatch->Stop(); return ret; }
     MainFrm->Controls["ExecProgBlock_lbl"]->Text = (ExecProgBlockNum +1).ToString()+ " " + gcnew String(ExecProgBlock);
     return ret;
 

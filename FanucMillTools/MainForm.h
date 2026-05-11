@@ -98,6 +98,7 @@ namespace FanucMillTools {
         this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
         this->fanucToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->axisSpindleToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+        this->getMachinePositionToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->testToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->downloadNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->downloadDNCToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -116,7 +117,6 @@ namespace FanucMillTools {
         this->FocasHndl_tb = (gcnew System::Windows::Forms::TextBox());
         this->CncInfo_lbl = (gcnew System::Windows::Forms::Label());
         this->MachinePos_timer = (gcnew System::Windows::Forms::Timer(this->components));
-        this->getMachinePositionToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
         this->menuStrip1->SuspendLayout();
         this->SuspendLayout();
         // 
@@ -143,9 +143,15 @@ namespace FanucMillTools {
         // 
         this->axisSpindleToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->getMachinePositionToolStripMenuItem });
         this->axisSpindleToolStripMenuItem->Name = L"axisSpindleToolStripMenuItem";
-        this->axisSpindleToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+        this->axisSpindleToolStripMenuItem->Size = System::Drawing::Size(140, 22);
         this->axisSpindleToolStripMenuItem->Text = L"Axis/Spindle";
-        
+        // 
+        // getMachinePositionToolStripMenuItem
+        // 
+        this->getMachinePositionToolStripMenuItem->Name = L"getMachinePositionToolStripMenuItem";
+        this->getMachinePositionToolStripMenuItem->Size = System::Drawing::Size(187, 22);
+        this->getMachinePositionToolStripMenuItem->Text = L"Get Machine Position";
+        this->getMachinePositionToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::getMachinePositionToolStripMenuItem_Click);
         // 
         // testToolStripMenuItem
         // 
@@ -282,14 +288,7 @@ namespace FanucMillTools {
         // 
         // MachinePos_timer
         // 
-        this->MachinePos_timer->Interval = 250;
-        // 
-        // getMachinePositionToolStripMenuItem
-        // 
-        this->getMachinePositionToolStripMenuItem->Name = L"getMachinePositionToolStripMenuItem";
-        this->getMachinePositionToolStripMenuItem->Size = System::Drawing::Size(187, 22);
-        this->getMachinePositionToolStripMenuItem->Text = L"Get Machine Position";
-        this->getMachinePositionToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::getMachinePositionToolStripMenuItem_Click);
+        this->MachinePos_timer->Interval = 1000;
         // 
         // MainForm
         // 
