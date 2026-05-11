@@ -831,7 +831,11 @@ private: System::Void downloadNCToolStripMenuItem_Click(System::Object^ sender, 
   }
  private:System::Void MachinePos_timer_Tick(System::Object^ sender, System::EventArgs^ e)
  {
-     FocasMonitorMachinePos(this,stopwatch);
+     short ret=FocasMonitorMachinePos(this,stopwatch);
+     if (ret != EW_OK)
+     {
+         MachinePos_timer->Enabled = false; return;
+     }
  }
 private: System::Void getMachinePositionToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
 {
