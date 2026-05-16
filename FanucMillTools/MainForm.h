@@ -288,7 +288,7 @@ namespace FanucMillTools {
         // 
         // MachinePos_timer
         // 
-        this->MachinePos_timer->Interval = 1000;
+        this->MachinePos_timer->Interval = 250;
         // 
         // MainForm
         // 
@@ -831,11 +831,14 @@ private: System::Void downloadNCToolStripMenuItem_Click(System::Object^ sender, 
   }
  private:System::Void MachinePos_timer_Tick(System::Object^ sender, System::EventArgs^ e)
  {
-     short ret=FocasMonitorMachinePos(this,stopwatch);
+     ret=FocasMonitorMachinePos(this,stopwatch);
      if (ret != EW_OK)
      {
-         MachinePos_timer->Enabled = false; return;
+         MachinePos_timer->Enabled = false; 
+         MessageBox::Show("Error returned by cnc_pdf_rdactpt: " + ret.ToString());
      }
+         return;
+     
  }
 private: System::Void getMachinePositionToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
 {
@@ -876,6 +879,7 @@ private: System::Void getMachinePositionToolStripMenuItem_Click(System::Object^ 
     Button^ ReadMachinePos_btn = gcnew Button(); ReadMachinePos_btn->Name = "ReadMachinePos_btn"; ReadMachinePos_btn->Text = "MONITOR MACHINE POSITION"; ReadMachinePos_btn->Tag = "Dynamic"; ReadMachinePos_btn->SetBounds(500, 100, 175, 20);
     Label^ ExecProgName_lbl = gcnew Label(); ExecProgName_lbl->Name = "ExecProgName_lbl"; ExecProgName_lbl->Tag = "Dynamic"; ExecProgName_lbl->SetBounds(100, 130, 250, 20);
     Label^ ExecProgBlock_lbl = gcnew Label(); ExecProgBlock_lbl->Name = "ExecProgBlock_lbl"; ExecProgBlock_lbl->Tag = "Dynamic"; ExecProgBlock_lbl->SetBounds(100, 160, 1000, 20);
+    ListBox^ ExecProg_lbox = gcnew ListBox(); ExecProg_lbox->Name = "ExecProg_lbox"; ExecProg_lbox->Tag = "Dynamic"; ExecProg_lbox->SetBounds(1000, 150, 500, 1000);
     ReadMachinePos_btn->Click += gcnew EventHandler(this, &MainForm::ReadMachinePos_btn_Click);
     MachinePos_timer->Tick += gcnew EventHandler(this, &MainForm::MachinePos_timer_Tick);
     Controls->Add(MachineAxis_lbl);
@@ -904,7 +908,8 @@ private: System::Void getMachinePositionToolStripMenuItem_Click(System::Object^ 
     Controls->Add(CurrentTime_lbl);
     Controls->Add(EllapsedTime_lbl);
     Controls->Add(ExecProgName_lbl);
-    Controls->Add(ExecProgBlock_lbl);
+    //Controls->Add(ExecProgBlock_lbl);
+    Controls->Add(ExecProg_lbox);
     FocasReadMachinePos(this);
 
 }

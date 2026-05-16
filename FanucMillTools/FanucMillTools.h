@@ -33,9 +33,9 @@ namespace FanucMillTools
 	char ExecProgName[256];
 	long ExecProgNum = 0;
 	long ExecProgBlockNum = 0;
-	char ExecProgBlock[512];
-	unsigned long ExecProgLinesToRead = 1;
-	unsigned long ExecProgBlockLength = 512;
+	//char ExecProgBlock[256];
+	//unsigned long ExecProgLinesToRead = 1;
+	//unsigned long ExecProgBlockLength = 256;
 	static ODBPOS MachinePos[MAX_AXIS];
 	static ODBACT ActualSpindleSpeed;
 	static ODBACT ActualFeedRate;
