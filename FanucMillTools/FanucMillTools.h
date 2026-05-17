@@ -33,6 +33,7 @@ namespace FanucMillTools
 	char ExecProgName[256];
 	long ExecProgNum = 0;
 	long ExecProgBlockNum = 0;
+	long PreviousBlockNumb = 0;
 	//char ExecProgBlock[256];
 	//unsigned long ExecProgLinesToRead = 1;
 	//unsigned long ExecProgBlockLength = 256;
@@ -40,8 +41,24 @@ namespace FanucMillTools
 	static ODBACT ActualSpindleSpeed;
 	static ODBACT ActualFeedRate;
 	static IODBSGNL OutputSignalImage;
-    
+	static ODBMDL GModalData;
+	static ODBMDL NoGModalData;
+	static ODBMDL NoGAxisModalData;
+	static IODBPMC IODBPmc;
+	static ODBST MachineStatusInfo;
 	long SpindleSpeed = 0;
 	long FeedRate = 0;
+	bool OperationSignal = 0;
+	short MachineIsMoving = 0;
+	unsigned long FirstMacroVariable = 0;
+	unsigned long NumbOfMacroVarsToRead = 0;
+	double MacroVars1[33];
+	//IODBMRN3 MacroVars1[33];
+	double MacroVars2[100];
+	//IODBMRN3 MacroVars2[100];
+	double MacroVars3[1068];
+	//IODBMRN3 MacroVars3[1068];
+	String^ GetGModalData(ODBMDL GModalData);
+	String^ GetNoGModalData(ODBMDL NoGModalData);
 	short ret = 0;//return value
 }

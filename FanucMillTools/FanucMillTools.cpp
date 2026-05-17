@@ -1007,7 +1007,8 @@ MessageBox::Show("NC FILE REGISTERED IN CNC");
 return ret;
 }
 short FocasReadMachinePos(Form^ MainFrm)
-{Label^ XMachinePos_lbl = (Label^)MainFrm->Controls["XMachinePos_lbl"];
+{NumberOfAxis = MAX_AXIS;
+ Label^ XMachinePos_lbl = (Label^)MainFrm->Controls["XMachinePos_lbl"];
  Label^ YMachinePos_lbl = (Label^)MainFrm->Controls["YMachinePos_lbl"];
  Label^ ZMachinePos_lbl = (Label^)MainFrm->Controls["ZMachinePos_lbl"];
  Label^ XAbsPos_lbl = (Label^)MainFrm->Controls["XAbsPos_lbl"];
@@ -1027,8 +1028,10 @@ short FocasReadMachinePos(Form^ MainFrm)
  Label^ CurrentTime_lbl = (Label^)MainFrm->Controls["CurrentTime_lbl"];
  Label^ EllapsedTime_lbl = (Label^)MainFrm->Controls["EllapsedTime_lbl"];
  Label^ ExecProgName_lbl = (Label^)MainFrm->Controls["ExecProgName_lbl"];
- //Label^ ExecProgBlock_lbl = (Label^)MainFrm->Controls["ExecProgBlock_lbl"];
+ Label^ GModalData_lbl = (Label^)MainFrm->Controls["GModalData_lbl"];
+ Label^ NoGModalData_lbl = (Label^)MainFrm->Controls["NoGModalData_lbl"];
  ListBox^ ExecProg_lbox = (ListBox^)MainFrm->Controls["ExecProg_lbox"];
+ ListBox^ MacroVars_lbox = (ListBox^)MainFrm->Controls["MacroVars_lbox"];
  //ODBEXEPRG ExecutingProgram;
  //char ExecProgName[256];
  ret = cnc_exeprgname2(FHndl, ExecProgName);if (ret!=EW_OK) {MessageBox::Show("Error returned by cnc_exeprgname2: " + ret.ToString()); return ret;}
@@ -1040,6 +1043,7 @@ short FocasReadMachinePos(Form^ MainFrm)
  unsigned long ProgBlocksToRead = 1;
  unsigned long ProgBlockLength = 256;
  bool IsEndOfProgram = false;
+ 
  while (!IsEndOfProgram)
  {
      ProgBlocksToRead = 1;
@@ -1051,10 +1055,17 @@ short FocasReadMachinePos(Form^ MainFrm)
      if ((ProgBlock->IndexOf("%") != -1) && ProgBlockNumb > 0) IsEndOfProgram = true;
      ProgBlockNumb++;
  }
+ for (int i = 1; i < 1200; i++)
+ {
+     if (i <= 33) MacroVars_lbox->Items->Add("#" + i.ToString());
+     if (i>=34 && i<=133) MacroVars_lbox->Items->Add("#" + (i+66).ToString());
+     if (i >=134) MacroVars_lbox->Items->Add("#" + (i +366).ToString());
+
+ }
  
  ret = cnc_pdf_rdactpt(FHndl, ExecProgName, &ExecProgBlockNum); if (ret != EW_OK) {MessageBox::Show("Error returned by cnc_pdf_rdactpt: " + ret.ToString()); return ret; }
  
- NumberOfAxis = MAX_AXIS;
+ 
  //ODBPOS MachinePos[MAX_AXIS];
  ret = cnc_rdposition(FHndl,-1, &NumberOfAxis, MachinePos); if (ret != EW_OK) {MessageBox::Show("Error returned by cnc_rdposition: " + ret.ToString());return ret;}
  //ODBACT ActualSpindleSpeed;
@@ -1063,8 +1074,8 @@ short FocasReadMachinePos(Form^ MainFrm)
  SpindleSpeed = ActualSpindleSpeed.data;
  ret = cnc_actf(FHndl, &ActualFeedRate); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_actf: " + ret.ToString()); return ret; }
  FeedRate = ActualFeedRate.data;
- //IODBSGNL OutputSignalImage;
- ret = cnc_rdopnlsgnl(FHndl,6, &OutputSignalImage);
+ 
+// ret = cnc_rdopnlsgnl(FHndl,6, &OutputSignalImage); if (ret != EW_OK) { MessageBox::Show("Error returned by cnc_rdopnlsgnl: " + ret.ToString()); return ret; }
  xAbs = MachinePos[0].abs.data * pow(10, -MachinePos[0].abs.dec);
  yAbs = MachinePos[1].abs.data * pow(10, -MachinePos[1].abs.dec);
  zAbs = MachinePos[2].abs.data * pow(10, -MachinePos[2].abs.dec);
@@ -1099,56 +1110,798 @@ short FocasReadMachinePos(Form^ MainFrm)
 }
 short FocasMonitorMachinePos(Form^ MainFrm,Stopwatch^ stopwatch)
 {    
-    NumberOfAxis = MAX_AXIS;
+    //ret = pmc_rdpmcrng(FHndl, 1, 0, 0, 0, 9, &IODBPmc); if (ret != EW_OK) { return ret; }
+    //if (GetBit(IODBPmc.u.cdata[0], 7) == 1) OperationSignal = 1; else OperationSignal = 0;
+    ret = cnc_statinfo(FHndl, &MachineStatusInfo); if (ret != EW_OK) { return ret; }
+    MachineIsMoving = MachineStatusInfo.motion;
+    
+    
+        PreviousBlockNumb = ExecProgBlockNum;
+        ret = cnc_pdf_rdactpt(FHndl, ExecProgName, &ExecProgBlockNum); if (ret != EW_OK) { return ret; }
+        //Read modal data
+        if (ExecProgBlockNum > PreviousBlockNumb)
+        {
+            ret = cnc_modal(FHndl, -1, 0, &GModalData); if (ret != EW_OK) return ret;
+            MainFrm->Controls["GModalData_lbl"]->Text = GetGModalData(GModalData);
+            //ret = cnc_modal(FHndl, -3, 0, &NoGAxisModalData);
+            ret = cnc_modal(FHndl, -2, 0, &NoGModalData); if (ret != EW_OK) return ret;
+            MainFrm->Controls["NoGModalData_lbl"]->Text = GetNoGModalData(NoGModalData);
+            /*
+            FirstMacroVariable = 1;
+            NumbOfMacroVarsToRead = 33;
+            
+             ret = cnc_rdmacror2(FHndl, FirstMacroVariable, &NumbOfMacroVarsToRead, MacroVars1); if (ret != EW_OK) { return ret; }
+            for (int i = 1; i <= 33; i++)
+            {
+                
+                ((ListBox^)MainFrm->Controls["MacroVars_lbl"])->Items[i-1] = "#" + i.ToString()+ "="+ MacroVars1[i-1].ToString();
+            }
+            FirstMacroVariable = 100;
+            NumbOfMacroVarsToRead = 100;
+            ret = cnc_rdmacror2(FHndl, FirstMacroVariable, &NumbOfMacroVarsToRead, MacroVars2); if (ret != EW_OK) { return ret; }
+            for (int i = 1; i <= 100; i++)
+            {
+                ((ListBox^)MainFrm->Controls["MacroVars_lbl"])->Items[i+32] = "#" + (i+99).ToString() + "=" + MacroVars2[i-1].ToString();
+            }
+            FirstMacroVariable = 500;
+            NumbOfMacroVarsToRead = 1067;
+            ret = cnc_rdmacror2(FHndl, FirstMacroVariable, &NumbOfMacroVarsToRead, MacroVars3); if (ret != EW_OK) { return ret; }
+            for (int i = 1; i <= 1067; i++)
+            {
+                ((ListBox^)MainFrm->Controls["MacroVars_lbl"])->Items[i+132] = "#" + (i + 499).ToString() + "=" + MacroVars3[i-1].ToString();
+            }
+            */
+        }
+        if (MachineIsMoving == 1)
+        {//ret=cnc_rdexecpt(FHndl,)
+        ret = cnc_rdposition(FHndl, -1, &NumberOfAxis, MachinePos); if (ret != EW_OK) {  return ret; }
+        //ODBACT ActualSpindleSpeed;
+        //ODBACT ActualFeedRate;
+        ret = cnc_acts(FHndl, &ActualSpindleSpeed); if (ret != EW_OK) { return ret; }
+        SpindleSpeed = ActualSpindleSpeed.data;
+        ret = cnc_actf(FHndl, &ActualFeedRate); if (ret != EW_OK) { return ret; }
+        FeedRate = ActualFeedRate.data;
+        //IODBSGNL OutputSignalImage;
+        //ret = cnc_rdopnlsgnl(FHndl, 6, &OutputSignalImage);  if (ret != EW_OK) { stopwatch->Stop(); MessageBox::Show("Error returned by cnc_rdopnlsgnl: " + ret.ToString()); stopwatch->Stop();  return ret; }//Spindle Speed Override (Not available in Fanuc 30i-31i series)
+        xAbs = MachinePos[0].abs.data * pow(10, -MachinePos[0].abs.dec);
+        yAbs = MachinePos[1].abs.data * pow(10, -MachinePos[1].abs.dec);
+        zAbs = MachinePos[2].abs.data * pow(10, -MachinePos[2].abs.dec);
+        x = MachinePos[0].mach.data * pow(10, -MachinePos[0].mach.dec);
+        y = MachinePos[1].mach.data * pow(10, -MachinePos[1].mach.dec);
+        z = MachinePos[2].mach.data * pow(10, -MachinePos[2].mach.dec);
+        xRel = MachinePos[0].rel.data * pow(10, -MachinePos[0].rel.dec);
+        yRel = MachinePos[1].rel.data * pow(10, -MachinePos[1].rel.dec);
+        zRel = MachinePos[2].rel.data * pow(10, -MachinePos[2].rel.dec);
+        xDtg = MachinePos[0].dist.data * pow(10, -MachinePos[0].dist.dec);
+        yDtg = MachinePos[1].dist.data * pow(10, -MachinePos[1].dist.dec);
+        zDtg = MachinePos[2].dist.data * pow(10, -MachinePos[2].dist.dec);
+        MainFrm->Controls["XMachinePos_lbl"]->ForeColor = Color::Green;
+        MainFrm->Controls["YMachinePos_lbl"]->ForeColor = Color::Green;
+        MainFrm->Controls["ZMachinePos_lbl"]->ForeColor = Color::Green;
+        if (xDtg >= 0) MainFrm->Controls["XMachinePos_lbl"]->Text = "+MX"; else MainFrm->Controls["XMachinePos_lbl"]->Text = "-MX";
+        if (yDtg >= 0) MainFrm->Controls["YMachinePos_lbl"]->Text = "+MY"; else MainFrm->Controls["YMachinePos_lbl"]->Text = "-MY";
+        if (zDtg >= 0) MainFrm->Controls["ZMachinePos_lbl"]->Text = "+MZ"; else MainFrm->Controls["ZMachinePos_lbl"]->Text = "-MZ";
+        MainFrm->Controls["XAbsPos_lbl"]->Text = xAbs.ToString();
+        MainFrm->Controls["YAbsPos_lbl"]->Text = yAbs.ToString();
+        MainFrm->Controls["ZAbsPos_lbl"]->Text = zAbs.ToString();
+        MainFrm->Controls["XPos_lbl"]->Text = x.ToString();
+        MainFrm->Controls["YPos_lbl"]->Text = y.ToString();
+        MainFrm->Controls["ZPos_lbl"]->Text = z.ToString();
+        MainFrm->Controls["XRelPos_lbl"]->Text = xRel.ToString();
+        MainFrm->Controls["YRelPos_lbl"]->Text = yRel.ToString();
+        MainFrm->Controls["ZRelPos_lbl"]->Text = zRel.ToString();
+        MainFrm->Controls["XDTGPos_lbl"]->Text = xDtg.ToString();
+        MainFrm->Controls["YDTGPos_lbl"]->Text = yDtg.ToString();
+        MainFrm->Controls["ZDTGPos_lbl"]->Text = zDtg.ToString();
+        MainFrm->Controls["SpindleSpeed_lbl"]->Text = "S " + SpindleSpeed.ToString() + " rpm";
+        MainFrm->Controls["FeedRate_lbl"]->Text = "F " + FeedRate + " mm/min";
+        MainFrm->Controls["CurrentTime_lbl"]->Text = DateTime::Now.ToLongTimeString();
+        MainFrm->Controls["EllapsedTime_lbl"]->Text = ((float)stopwatch->ElapsedMilliseconds / 1000).ToString();;
+        
+        ((ListBox^)MainFrm->Controls["ExecProg_lbox"])->SelectedIndex = ExecProgBlockNum;
+        
+        
+    }
+    else
+    {
+      MainFrm->Controls["XMachinePos_lbl"]->ForeColor = Color::Black;
+      MainFrm->Controls["YMachinePos_lbl"]->ForeColor = Color::Black;
+      MainFrm->Controls["ZMachinePos_lbl"]->ForeColor = Color::Black;
       
-    
-    ret = cnc_rdposition(FHndl, -1, &NumberOfAxis, MachinePos); if (ret != EW_OK) { stopwatch->Stop();MessageBox::Show("Error returned by cnc_rdposition: " + ret.ToString()); stopwatch->Stop(); return ret; }
-    //ODBACT ActualSpindleSpeed;
-    //ODBACT ActualFeedRate;
-    ret = cnc_acts(FHndl, &ActualSpindleSpeed); if (ret != EW_OK) {stopwatch->Stop(); MessageBox::Show("Error returned by cnc_acts: " + ret.ToString()); stopwatch->Stop();  return ret; }
-    SpindleSpeed = ActualSpindleSpeed.data;
-    ret = cnc_actf(FHndl, &ActualFeedRate); if (ret != EW_OK) {stopwatch->Stop(); MessageBox::Show("Error returned by cnc_actf: " + ret.ToString());  stopwatch->Stop(); return ret; }
-    FeedRate = ActualFeedRate.data;
-    //IODBSGNL OutputSignalImage;
-    ret = cnc_rdopnlsgnl(FHndl, 6, &OutputSignalImage);  if (ret != EW_OK) {stopwatch->Stop(); MessageBox::Show("Error returned by cnc_rdopnlsgnl: " + ret.ToString()); stopwatch->Stop();  return ret; }//Spindle Speed Override (Not available in Fanuc 30i-31i series)
-    xAbs = MachinePos[0].abs.data * pow(10, -MachinePos[0].abs.dec);
-    yAbs = MachinePos[1].abs.data * pow(10, -MachinePos[1].abs.dec);
-    zAbs = MachinePos[2].abs.data * pow(10, -MachinePos[2].abs.dec);
-    x = MachinePos[0].mach.data * pow(10, -MachinePos[0].mach.dec);
-    y = MachinePos[1].mach.data * pow(10, -MachinePos[1].mach.dec);
-    z = MachinePos[2].mach.data * pow(10, -MachinePos[2].mach.dec);
-    xRel = MachinePos[0].rel.data * pow(10, -MachinePos[0].rel.dec);
-    yRel = MachinePos[1].rel.data * pow(10, -MachinePos[1].rel.dec);
-    zRel = MachinePos[2].rel.data * pow(10, -MachinePos[2].rel.dec);
-    xDtg = MachinePos[0].dist.data * pow(10, -MachinePos[0].dist.dec);
-    yDtg = MachinePos[1].dist.data * pow(10, -MachinePos[1].dist.dec);
-    zDtg = MachinePos[2].dist.data * pow(10, -MachinePos[2].dist.dec);
-    if (xDtg >= 0) MainFrm->Controls["XMachinePos_lbl"]->Text = "+MX"; else MainFrm->Controls["XMachinePos_lbl"]->Text = "-MX";
-    if (yDtg >= 0) MainFrm->Controls["YMachinePos_lbl"]->Text = "+MY"; else MainFrm->Controls["YMachinePos_lbl"]->Text = "-MY";
-    if (zDtg >= 0) MainFrm->Controls["ZMachinePos_lbl"]->Text = "+MZ"; else MainFrm->Controls["ZMachinePos_lbl"]->Text = "-MZ";
-    MainFrm->Controls["XAbsPos_lbl"]->Text = xAbs.ToString();
-    MainFrm->Controls["YAbsPos_lbl"]->Text = yAbs.ToString();
-    MainFrm->Controls["ZAbsPos_lbl"]->Text = zAbs.ToString();
-    MainFrm->Controls["XPos_lbl"]->Text = x.ToString();
-    MainFrm->Controls["YPos_lbl"]->Text = y.ToString();
-    MainFrm->Controls["ZPos_lbl"]->Text = z.ToString();
-    MainFrm->Controls["XRelPos_lbl"]->Text = xRel.ToString();
-    MainFrm->Controls["YRelPos_lbl"]->Text = yRel.ToString();
-    MainFrm->Controls["ZRelPos_lbl"]->Text = zRel.ToString();
-    MainFrm->Controls["XDTGPos_lbl"]->Text = xDtg.ToString();
-    MainFrm->Controls["YDTGPos_lbl"]->Text = yDtg.ToString();
-    MainFrm->Controls["ZDTGPos_lbl"]->Text = zDtg.ToString();
-    MainFrm->Controls["SpindleSpeed_lbl"]->Text = "S " + SpindleSpeed.ToString() + " rpm";
-    MainFrm->Controls["FeedRate_lbl"]->Text = "F " + FeedRate + " mm/min";
-    MainFrm->Controls["CurrentTime_lbl"]->Text = DateTime::Now.ToLongTimeString();
-    MainFrm->Controls["EllapsedTime_lbl"]->Text = ((float)stopwatch->ElapsedMilliseconds / 1000).ToString();;
-    //ret=cnc_rdexecpt(FHndl,)
-    ret=cnc_pdf_rdactpt(FHndl, ExecProgName, &ExecProgBlockNum); if (ret != EW_OK) {/*MessageBox::Show("Error returned by cnc_pdf_rdactpt: " + ret.ToString());*/ return ret; }
-    ((ListBox^)MainFrm->Controls["ExecProg_lbox"])->SelectedIndex = ExecProgBlockNum+1;
-    
-
-    
+    }
     return ret;
 
 }
+ String^  GetGModalData(ODBMDL GModalData)
+ {
+     String^ sGModal;
+     
+     short   GModal = 0;
+     for (int i = 0; i <= 34; i++)
+     {
+         
+         if (GetBit((short)GModalData.modal.g_rdata[i], 7) == 1) GModal = abs(GModalData.modal.g_rdata[i]) - 128;
+         else GModal = (short)GModalData.modal.g_rdata[i];
+         if (i==0)
+         {
+         switch (GModal)
+         {case 0:
+          sGModal += "G00 ";
+          
+          break;
+          case 1:
+          sGModal += "G01 ";
+          
+          break;
+          case 2:
+          sGModal += "G02 ";
+          
+          break;
+          case 3:
+          sGModal += "G03 ";
+          
+          break;
+          case 4:
+          sGModal += "G33 ";
+          
+          break;
+          case 5:
+          sGModal += "G75 ";
+          
+          break;
+          case 6:
+          sGModal += "G77 ";
+          
+          break;
+          case 7:
+          sGModal += "G78 ";
+          
+          break;
+          case 8:
+          sGModal += "G79 ";
+          
+          break;
+          case 10:
+          sGModal += "G02.2 ";
+          
+          break;
+          case 11:
+          sGModal += "G03.2 ";
+          
+          break;
+          case 12:
+          sGModal += "G02.3 ";
+          
+          break;
+          case 13:
+          sGModal += "G03.3 ";
+          
+          break;
+          case 14:
+          sGModal += "G06.2 ";
+          
+          break;
+          case 15:
+          sGModal += "G02.4 ";
+          
+          break;
+          case 16:
+          sGModal += "G03.4 ";
+          
+          break;
+          case 22:
+          sGModal += "G35 ";
+          
+          break;
+          case 23:
+          sGModal += "G36 ";
+          
+          break;
+          case 24:
+          sGModal += "G34 ";
+          
+          break;
+          default:
+          break;
+          }
+         }
+         if (i == 1)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G17 ";
+                 
+                 break;
+             case 4:
+                 sGModal += "G19 ";
+                 
+                 break;
+             case 8:
+                 sGModal += "G18 ";
+                 
+                 break;
+             case 10:
+                 sGModal += "G17.1 ";
+                 
+                 break;
+             
+             default:
+                 break;
+             }
+         }
+         if (i == 2)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G90 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G91 ";
+                 
+                 break;
+             
+             default:
+                 break;
+             }
+         }
+         if (i == 3)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G23 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G22 ";
+                 
+                 break;
+
+             default:
+                 break;
+             }
+         }
+         if (i == 4)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G94 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G95 ";
+                 
+                 break;
+             case 2:
+                 sGModal += "G93 ";
+                 
+                 break;
+             case 3:
+                 sGModal += "G93.2 ";
+                 
+                 break;
+             default:
+                 break;
+             }
+         }
+         if (i == 5)
+         {switch (GModal)
+             {
+             case 0:
+                 sGModal += "G20 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G21 ";
+                 
+                 break;
+             
+             default:
+                 break;
+             }
+         }
+         if (i == 6)
+         {switch (GModal)
+             {
+             case 0:
+             sGModal += "G40 ";
+             
+             break;
+             case 1:
+             sGModal += "G41 ";
+             
+             break;
+             case 2:
+             sGModal += "G42 ";
+             
+             break;
+             case 3:
+             sGModal += "G41.2 ";
+             
+             break;
+             case 4:
+             sGModal += "G42.2 ";
+             
+             break;
+             case 5:
+             sGModal += "G41.3 ";
+             
+             break;
+             case 6:
+             sGModal += "G41.4 ";
+             
+             break;
+             case 7:
+             sGModal += "G42.4 ";
+             
+             break;
+             case 8:
+             sGModal += "G41.5 ";
+             
+             break;
+             case 9:
+             sGModal += "G42.5 ";
+             
+             break;
+             case 10:
+             sGModal += "G41.6 ";
+             
+             break;
+             case 11:
+             sGModal += "G42.6 ";
+             
+             break;
+
+             default:
+             break;
+             }
+         }
+         if (i == 7)
+         {switch (GModal)
+             {case 0:
+                 sGModal += "G49(G49.1) ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G43 ";
+                 
+                 break;
+             case 2:
+                 sGModal += "G44 ";
+                 
+                 break;
+             case 3:
+                 sGModal += "G43.1 ";
+                 
+                 break;
+             case 4:
+                 sGModal += "G43.4 ";
+                 
+                 break;
+             case 5:
+                 sGModal += "G43.5 ";
+                 
+                 break;
+             case 6:
+                 sGModal += "G43.2 ";
+                 
+                 break;
+             case 7:
+                 sGModal += "G43.3 ";
+                 
+                 break;
+                 default:
+                 break;
+             }
+         }
+         if (i == 8)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G80 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G81 ";
+                 
+                 break;
+             case 2:
+                 sGModal += "G82 ";
+                 
+                 break;
+             case 3:
+                 sGModal += "G83 ";
+                 
+                 break;
+             case 4:
+                 sGModal += "G84 ";
+                 
+                 break;
+             case 5:
+                 sGModal += "G85 ";
+                 
+                 break;
+             case 6:
+                 sGModal += "G86 ";
+                 
+                 break;
+             case 7:
+                 sGModal += "G87 ";
+                 
+                 break;
+             case 8:
+                 sGModal += "G88 ";
+                 
+                 break;
+             case 9:
+                 sGModal += "G89 ";
+                 
+                 break;
+             case 10:
+                 sGModal += "G73 ";
+                 
+                 break;
+             case 11:
+                 sGModal += "G74 ";
+                 
+                 break;
+             case 12:
+                 sGModal += "G76 ";
+                 
+                 break;
+             case 13:
+                 sGModal += "G84.2 ";
+                 
+                 break;
+             case 14:
+                 sGModal += "G84.3 ";
+                 
+                 break;
+             case 15:
+                 sGModal += "G81.2 ";
+                 
+                 break;
+             default:
+                 break;
+             }
+         }
+         if (i == 9)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G98 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G99 ";
+                 
+                 break;
+
+             default:
+                 break;
+             }
+         }
+         if (i == 10)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G50 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G51 ";
+                 
+                 break;
+
+             default:
+                 break;
+             }
+         }
+         if (i == 11)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G67 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G66 ";
+                 
+                 break;
+             case 2:
+                 sGModal += "G66.1 ";
+                 
+                 break;
+             default:
+                 break;
+             }
+         }
+         if (i == 12)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G97 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G96 ";
+                 
+                 break;
+             
+             default:
+                 break;
+             }
+         }
+         if (i == 13)
+         {switch (GModal)
+             {
+             case 0:
+                 sGModal += "G54(G54.1) ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G55 ";
+                 
+                 break;
+             case 2:
+                 sGModal += "G56 ";
+                 
+                 break;
+             case 3:
+                 sGModal += "G57 ";
+                 
+                 break;
+             case 4:
+                 sGModal += "G58 ";
+                 
+                 break;
+             case 5:
+                 sGModal += "G59 ";
+                 
+                 break;
+             default:
+                 break;
+             }
+         }
+         if (i == 14)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G64 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G61 ";
+                 
+                 break;
+             case 2:
+                 sGModal += "G62 ";
+                 
+                 break;
+             case 3:
+                 sGModal += "G63 ";
+                 
+                 break;
+             
+             default:
+                 break;
+             }
+         }
+         if (i == 15)
+         {switch (GModal)
+             {
+             case 0:
+                 sGModal += "G69 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G68 ";
+                 
+                 break;
+             case 2:
+                 sGModal += "G68.2 ";
+                 
+                 break;
+             case 3:
+                 sGModal += "G68.3 ";
+                 
+                 break;
+             default:
+                 break;
+             }
+         }
+         if (i == 16)
+         {switch (GModal)
+             {
+             case 0:
+                 sGModal += "G15 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G16 ";
+                 
+                 break;
+             
+             default:
+                 break;
+             }
+         }
+         if (i == 17)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G40.1 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G41.1 ";
+                 
+                 break;
+             case 2:
+                 sGModal += "G42.1 ";
+                 
+                 break;
+             default:
+                 break;
+             }
+         }
+         if (i == 18)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G25 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G26 ";
+                 
+                 break;
+             default:
+             break;
+             }
+         }
+         if (i == 19)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G160 ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G161 ";
+                 
+                 break;
+             default:
+                 break;
+             }
+         }
+         if (i == 20)
+         {
+             switch (GModal)
+             {
+             case 0:
+                 sGModal += "G13.1(G113) ";
+                 
+                 break;
+             case 1:
+                 sGModal += "G12.1(G112) ";
+                 
+                 break;
+             default:
+                 break;
+             }
+         }
+     }
+     return sGModal;
+}
+ String^ GetNoGModalData(ODBMDL NoGModalData)
+ {String^ sNoGModal;
+  short  NoGModalType = 0;
+  long NoGModal;
+  for (int i = 0; i <= 27; i++)
+  {
+      NoGModal = NoGModalData.modal.raux1[i].aux_data;
+      //NoGModalType = (short)NoGModalData.modal.raux1[i].flag1 >> 5;
+      //if (GetBit((short)NoGModalData.modal.raux1[i].aux_data, 7) == 1) NoGModal = abs(NoGModalData.modal.raux1[i].aux_data) - 128;
+      //else NoGModal = (short)GModalData.modal.raux1[i].aux_data;
+      switch (i)
+      {
+      case 0:
+          if (NoGModal>0) sNoGModal += "B"+ NoGModal.ToString() + " ";
+          break;
+      case 1:
+          if (NoGModal > 0) sNoGModal += "D" + NoGModal.ToString()+ " ";
+          break;
+      case 3:
+          if (NoGModal > 0) sNoGModal += "F" + NoGModal.ToString()+ " ";
+          break;
+      case 4:
+          if (NoGModal > 0) sNoGModal += "H" + NoGModal.ToString() + " ";
+          break;
+      case 5:
+          if (NoGModal > 0) sNoGModal += "L" + NoGModal.ToString() + " ";
+          break;
+      case 6:
+          if (NoGModal > 0) sNoGModal += "M" + NoGModal.ToString() + " ";
+          break;
+      case 7:
+          if (NoGModal > 0) sNoGModal += "S" + NoGModal.ToString() + " ";
+          break;
+      case 8:
+          if (NoGModal > 0) sNoGModal += "T" + NoGModal.ToString() + " ";
+          break;
+      case 9:
+          if (NoGModal > 0) sNoGModal += "R" + NoGModal.ToString() + " ";
+          break;
+      case 10:
+          if (NoGModal > 0)sNoGModal += "P" + NoGModal.ToString() + " ";
+          break;
+      case 11:
+          if (NoGModal > 0)sNoGModal += "Q" + NoGModal.ToString() + " ";
+          break;
+      case 12:
+          if (NoGModal > 0) sNoGModal += "A" + NoGModal.ToString() + " ";
+          break;
+      case 13:
+          if (NoGModal > 0) sNoGModal += "C" + NoGModal.ToString() + " ";
+          break;
+      case 14:
+          if (NoGModal > 0) sNoGModal += "I" + NoGModal.ToString() + " ";
+          break;
+      case 15:
+          if (NoGModal > 0) sNoGModal += "J" + NoGModal.ToString() + " ";
+          break;
+      case 16:
+          if (NoGModal > 0) sNoGModal += "K" + NoGModal.ToString() + " ";
+          break;
+      case 17:
+          if (NoGModal > 0) sNoGModal += "N" + NoGModal.ToString() + " ";
+          break;
+      case 18:
+          if (NoGModal > 0) sNoGModal += "O" + NoGModal.ToString() + " ";
+          break;
+      case 19:
+          if (NoGModal > 0) sNoGModal += "U" + NoGModal.ToString() + " ";
+          break;
+      case 20:
+          if (NoGModal > 0) sNoGModal += "V" + NoGModal.ToString() + " ";
+          break;
+      case 21:
+          if (NoGModal > 0) sNoGModal += "W" + NoGModal.ToString() + " ";
+          break;
+      case 22:
+          if (NoGModal > 0) sNoGModal += "X" + NoGModal.ToString() + " ";
+          break;
+      case 23:
+          if (NoGModal > 0) sNoGModal += "Y" + NoGModal.ToString() + " ";
+          break;
+      case 24:
+          if (NoGModal > 0) sNoGModal += "Z" + NoGModal.ToString() + " ";
+          break;
+      case 25:
+          if (NoGModal > 0) sNoGModal += "2M" + NoGModal.ToString() + " ";
+          break;
+      case 26:
+          if (NoGModal > 0) sNoGModal += "3M" + NoGModal.ToString() + " ";
+          break;
+      default:
+          break;
+      }
+  
+  }
+  return sNoGModal;
+ }
 }

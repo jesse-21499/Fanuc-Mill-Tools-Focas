@@ -835,7 +835,9 @@ private: System::Void downloadNCToolStripMenuItem_Click(System::Object^ sender, 
      if (ret != EW_OK)
      {
          MachinePos_timer->Enabled = false; 
-         MessageBox::Show("Error returned by cnc_pdf_rdactpt: " + ret.ToString());
+         Controls["ReadMachinePos_btn"]->BackColor = Color::Transparent;
+         stopwatch->Stop();
+         MessageBox::Show("Error reading machine position: " + ret.ToString());
      }
          return;
      
@@ -878,8 +880,10 @@ private: System::Void getMachinePositionToolStripMenuItem_Click(System::Object^ 
     Label^ EllapsedTime_lbl = gcnew Label(); EllapsedTime_lbl->Name = "EllapsedTime_lbl"; EllapsedTime_lbl->Text = "0"; EllapsedTime_lbl->Tag = "Dynamic"; EllapsedTime_lbl->SetBounds(825, 100, 50, 20);
     Button^ ReadMachinePos_btn = gcnew Button(); ReadMachinePos_btn->Name = "ReadMachinePos_btn"; ReadMachinePos_btn->Text = "MONITOR MACHINE POSITION"; ReadMachinePos_btn->Tag = "Dynamic"; ReadMachinePos_btn->SetBounds(500, 100, 175, 20);
     Label^ ExecProgName_lbl = gcnew Label(); ExecProgName_lbl->Name = "ExecProgName_lbl"; ExecProgName_lbl->Tag = "Dynamic"; ExecProgName_lbl->SetBounds(100, 130, 250, 20);
-    Label^ ExecProgBlock_lbl = gcnew Label(); ExecProgBlock_lbl->Name = "ExecProgBlock_lbl"; ExecProgBlock_lbl->Tag = "Dynamic"; ExecProgBlock_lbl->SetBounds(100, 160, 1000, 20);
-    ListBox^ ExecProg_lbox = gcnew ListBox(); ExecProg_lbox->Name = "ExecProg_lbox"; ExecProg_lbox->Tag = "Dynamic"; ExecProg_lbox->SetBounds(1000, 150, 500, 1000);
+    Label^ GModalData_lbl = gcnew Label(); GModalData_lbl->Name = "GModalData_lbl"; GModalData_lbl->Tag = "Dynamic"; GModalData_lbl->SetBounds(100, 160, 1000, 20);
+    Label^ NoGModalData_lbl = gcnew Label(); NoGModalData_lbl->Name = "NoGModalData_lbl"; NoGModalData_lbl->Tag = "Dynamic"; NoGModalData_lbl->SetBounds(100, 180, 750, 20);
+    ListBox^ ExecProg_lbox = gcnew ListBox(); ExecProg_lbox->Name = "ExecProg_lbox"; ExecProg_lbox->Tag = "Dynamic"; ExecProg_lbox->SetBounds(1000, 200, 500, 800);
+    ListBox^ MacroVars_lbox = gcnew ListBox(); MacroVars_lbox->Name = "MacroVars_lbox"; MacroVars_lbox->Tag = "Dynamic"; MacroVars_lbox->SetBounds(1600, 200, 200, 800);
     ReadMachinePos_btn->Click += gcnew EventHandler(this, &MainForm::ReadMachinePos_btn_Click);
     MachinePos_timer->Tick += gcnew EventHandler(this, &MainForm::MachinePos_timer_Tick);
     Controls->Add(MachineAxis_lbl);
@@ -908,8 +912,10 @@ private: System::Void getMachinePositionToolStripMenuItem_Click(System::Object^ 
     Controls->Add(CurrentTime_lbl);
     Controls->Add(EllapsedTime_lbl);
     Controls->Add(ExecProgName_lbl);
-    //Controls->Add(ExecProgBlock_lbl);
+    Controls->Add(GModalData_lbl);
+    Controls->Add(NoGModalData_lbl);
     Controls->Add(ExecProg_lbox);
+    Controls->Add(MacroVars_lbox);
     FocasReadMachinePos(this);
 
 }
